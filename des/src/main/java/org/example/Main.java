@@ -12,33 +12,67 @@ import static org.example.utils.ToView.bytesToHex;
 
 @Slf4j
 public class Main {
+
+
+
     public static void main(String[] args) {
 
         byte[] key = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
 
-
-        byte[] oneBlockOfMessage = null;
+        byte[] fileData = null;
         try {
-
-            oneBlockOfMessage = Files.readAllBytes(Paths.get("8bytes.txt"));
-
-            log.info("Размер данных: {}", oneBlockOfMessage.length + " байт");
-            log.info("Содержимое: {}", bytesToHex(oneBlockOfMessage));
+            fileData = Files.readAllBytes(Paths.get("input.txt"));
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
 
         Des des = new Des();
 
+        byte[] paddedData = Des.addPkcs7Padding(fileData);
 
 
-        byte[] chipherText = des.encode(oneBlockOfMessage, key);
+        byte[] encryptedData = new byte[paddedData.length];
+        for (int i = 0; i < paddedData.length; i += 8) {
+            byte[] block = new byte[8];
+            System.arraycopy(paddedData, i, block, 0, 8);
+            byte[] encryptedBlock = des.encode(block, key);
+            System.arraycopy(encryptedBlock, 0, encryptedData, i, 8);
+        }
 
-        log.info("шифроблок: {}", bytesToHex(chipherText));
+        byte[] decryptedData = new byte[encryptedData.length];
+        for (int i = 0; i < encryptedData.length; i += 8) {
+            byte[] block = new byte[8];
+            System.arraycopy(encryptedData, i, block, 0, 8);
+            byte[] decryptedBlock = des.decode(block, key);
+            System.arraycopy(decryptedBlock, 0, decryptedData, i, 8);
+        }
 
-        byte[] startedText = des.decode(chipherText, key);
 
-        log.info("исходный текст в hex: {}", bytesToHex(startedText));
+        byte[] originalData = Des.removePkcs7Padding(decryptedData);
+
+
+//        byte[] oneBlockOfMessage = null;
+//        try {
+//
+//            oneBlockOfMessage = Files.readAllBytes(Paths.get("8bytes.txt"));
+//
+//            log.info("Размер данных: {}", oneBlockOfMessage.length + " байт");
+//            log.info("Содержимое: {}", bytesToHex(oneBlockOfMessage));
+//        } catch (IOException e) {
+//            log.error(e.getMessage(), e);
+//        }
+//
+//        Des des = new Des();
+//
+//
+//
+//        byte[] chipherText = des.encode(oneBlockOfMessage, key);
+//
+//        log.info("шифроблок: {}", bytesToHex(chipherText));
+//
+//        byte[] startedText = des.decode(chipherText, key);
+//
+//        log.info("исходный текст в hex: {}", bytesToHex(startedText));
 
 
 
