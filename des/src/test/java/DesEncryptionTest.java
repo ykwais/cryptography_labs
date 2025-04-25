@@ -7,12 +7,10 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DesEncryptionTest {
-
+class DesEncryptionOneBlockTest {
 
     private final Des des = new Des();
 
-    // Вспомогательный метод для преобразования hex строки в byte[]
     private byte[] hexToBytes(String hex) {
         byte[] bytes = new byte[hex.length() / 2];
         for (int i = 0; i < bytes.length; i++) {
@@ -23,7 +21,6 @@ class DesEncryptionTest {
 
     @Test
     void testWithNistKnownAnswer() {
-        // Тестовые данные из FIPS PUB 46-3
         byte[] key = hexToBytes("133457799BBCDFF1");
         byte[] plaintext = hexToBytes("0123456789ABCDEF");
 
@@ -32,20 +29,26 @@ class DesEncryptionTest {
 
         assertArrayEquals(expected, ciphertext,
                 "Шифрование не соответствует NIST тестовому вектору");
+
+        byte[] decrypted = des.decode(ciphertext, key);
+        assertArrayEquals(plaintext, decrypted,
+                "Дешифровка не вернула исходные данные");
     }
 
     @Test
     void testWithAllZeros() {
-        byte[] key = new byte[8]; // Все нули
-        byte[] plaintext = new byte[8]; // Все нули
+        byte[] key = new byte[8];
+        byte[] plaintext = new byte[8];
 
         byte[] ciphertext = des.encode(plaintext, key);
-
-        // Ожидаемый результат для нулевого ввода
         byte[] expected = hexToBytes("8CA64DE9C1B123A7");
 
         assertArrayEquals(expected, ciphertext,
                 "Шифрование нулевого блока дало неверный результат");
+
+        byte[] decrypted = des.decode(ciphertext, key);
+        assertArrayEquals(plaintext, decrypted,
+                "Дешифровка нулевого блока дала неверный результат");
     }
 
     @Test
@@ -54,18 +57,19 @@ class DesEncryptionTest {
                 (byte)0xC4, (byte)0xC8, (byte)0xC0,
                 (byte)0xCD, (byte)0xC0};
 
-        // Тестовое сообщение "DES_TEST_"
-        byte[] plaintext = "DES_TEST_".getBytes(StandardCharsets.UTF_8);
+        byte[] plaintext = "DES_TEST".getBytes(StandardCharsets.UTF_8);
 
         byte[] ciphertext = des.encode(plaintext, key);
 
-        // Проверяем что результат не равен исходному
         assertNotEquals(plaintext, ciphertext,
                 "Шифрование не изменило данные");
 
-        // Проверяем размер результата
         assertEquals(8, ciphertext.length,
                 "Размер шифроблока должен быть 8 байт");
+
+        byte[] decrypted = des.decode(ciphertext, key);
+        assertArrayEquals(plaintext, decrypted,
+                "Дешифровка не вернула исходные данные");
     }
 
     @Test
@@ -78,8 +82,11 @@ class DesEncryptionTest {
 
         assertArrayEquals(ciphertext1, ciphertext2,
                 "Двойное шифрование с тем же ключом дало разные результаты");
-    }
 
+        byte[] decrypted = des.decode(ciphertext1, key);
+        assertArrayEquals(plaintext, decrypted,
+                "Дешифровка не вернула исходные данные");
+    }
 
     @Test
     void testDeterministicEncryption() {
@@ -91,11 +98,14 @@ class DesEncryptionTest {
 
         assertArrayEquals(ciphertext1, ciphertext2,
                 "Шифрование не детерминировано - разные результаты для одинаковых входов");
+
+        byte[] decrypted = des.decode(ciphertext1, key);
+        assertArrayEquals(plaintext, decrypted,
+                "Дешифровка не вернула исходные данные");
     }
 
     @Test
     void testWithFileInput() throws Exception {
-        // Подготовка тестового файла
         byte[] testData = "8BYTESTX".getBytes(StandardCharsets.UTF_8);
         Path testFile = Files.createTempFile("des-test", ".txt");
         Files.write(testFile, testData);
@@ -110,20 +120,27 @@ class DesEncryptionTest {
         assertEquals(8, ciphertext.length);
         assertNotEquals(testData, ciphertext);
 
-        // Удаляем временный файл
+        byte[] decrypted = des.decode(ciphertext, key);
+        assertArrayEquals(testData, decrypted,
+                "Дешифровка файла не вернула исходные данные");
+
         Files.deleteIfExists(testFile);
     }
 
     @Test
     void testBoundaryValues() {
         byte[] key = hexToBytes("FFFFFFFFFFFFFFFF");
-
-        // Максимальное значение блока
         byte[] maxBlock = hexToBytes("FFFFFFFFFFFFFFFF");
+
         byte[] ciphertext = des.encode(maxBlock, key);
 
         assertNotNull(ciphertext);
         assertEquals(8, ciphertext.length);
+
+        byte[] decrypted = des.decode(ciphertext, key);
+        assertArrayEquals(maxBlock, decrypted,
+                "Дешифровка граничных значений дала неверный результат");
     }
+
 
 }

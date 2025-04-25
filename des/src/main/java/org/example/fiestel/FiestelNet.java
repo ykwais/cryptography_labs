@@ -8,7 +8,7 @@ import static org.example.utils.ToView.intToHex;
 @Slf4j
 public class FiestelNet {
 
-    public Pair<Integer, Integer> rounds16OfFiestelNet(int l0, int r0, byte[][] roundKeys) {
+    public Pair<Integer, Integer> rounds16OfFiestelNet(int l0, int r0, byte[][] roundKeys, boolean isEncrypt) {
 
         FiestelFunction fiestelFunction = new FiestelFunction();
 
@@ -21,7 +21,9 @@ public class FiestelNet {
 
             int lNext = r;
 
-            int rNext = l ^ fiestelFunction.doFunction(r, roundKeys[i]);
+            int indexOfRoundKey = isEncrypt ? i : roundKeys.length - 1 - i;
+
+            int rNext = l ^ fiestelFunction.doFunction(r, roundKeys[indexOfRoundKey]);
 
             l = lNext;
             r = rNext;

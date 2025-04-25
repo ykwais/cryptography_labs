@@ -15,6 +15,14 @@ import static org.example.utils.ToView.intToHex;
 public class Des {
 
     public byte[] encode(byte[] oneBlock, byte[] key) {
+        return encodeInner(oneBlock, key, true);
+    }
+
+    public byte[] decode(byte[] oneBlock, byte[] key) {
+        return encodeInner(oneBlock, key, false);
+    }
+
+    public byte[] encodeInner(byte[] oneBlock, byte[] key, boolean isEncrypt) {
 
         FiestelNet net = new FiestelNet();
 
@@ -45,7 +53,7 @@ public class Des {
         log.info("l0 HEX: {}", intToHex(l0));
         log.info("r0 HEX: {}", intToHex(r0));
 
-        Pair<Integer, Integer> l16r16 = net.rounds16OfFiestelNet(l0, r0, roundKeys);
+        Pair<Integer, Integer> l16r16 = net.rounds16OfFiestelNet(l0, r0, roundKeys, isEncrypt);
 
         int l16 = l16r16.second();//переворот здесь!!!!!!!!!!!
         int r16 = l16r16.first();

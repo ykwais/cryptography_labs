@@ -2,8 +2,7 @@ package org.example;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.des.Des;
-import org.example.interfaces.KeyExpansion;
-import org.example.interfaces.impl.KeyExpansionImpl;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,6 +35,10 @@ public class Main {
         byte[] chipherText = des.encode(oneBlockOfMessage, key);
 
         log.info("шифроблок: {}", bytesToHex(chipherText));
+
+        byte[] startedText = des.decode(chipherText, key);
+
+        log.info("исходный текст в hex: {}", bytesToHex(startedText));
 
 
 
