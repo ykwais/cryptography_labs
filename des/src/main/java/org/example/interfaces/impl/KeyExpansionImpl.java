@@ -1,12 +1,12 @@
 package org.example.interfaces.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.Utils.PermutationBits;
+import org.example.utils.PermutationBits;
 import org.example.constants.Tables;
 import org.example.interfaces.KeyExpansion;
 
-import static org.example.Utils.ToView.bytesToHex;
-import static org.example.Utils.ToView.intToHex;
+import static org.example.utils.ToView.bytesToHex;
+import static org.example.utils.ToView.intToHex;
 
 @Slf4j
 public class KeyExpansionImpl implements KeyExpansion {

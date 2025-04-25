@@ -1,4 +1,4 @@
-package org.example.Utils;
+package org.example.utils;
 
 import lombok.experimental.UtilityClass;
 
@@ -14,5 +14,13 @@ public class ToView {
 
     public static String intToHex(int value) {
         return String.format("%08X", value);
+    }
+
+    public static String bytesToBinary(byte[] bytes) {
+        StringBuilder bString = new StringBuilder();
+        for (byte b : bytes) {
+            bString.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0')).append(" ");
+        }
+        return bString.toString().trim();
     }
 }

@@ -1,5 +1,5 @@
 import lombok.extern.slf4j.Slf4j;
-import org.example.Utils.PermutationBits;
+import org.example.utils.PermutationBits;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
