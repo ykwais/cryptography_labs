@@ -1,5 +1,5 @@
 package org.example.constants;
 
-public enum ReadingMode {
+public enum CipherMode {
     ECB
 }

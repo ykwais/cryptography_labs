@@ -1,8 +1,10 @@
 package org.example;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.interfaces.EncoderDecoderSymmetric;
-import org.example.interfaces.impl.Des;
+import org.example.interfaces.EncryptorDecryptorSymmetric;
+import org.example.des.Des;
+import org.example.interfaces.impl.FiestelFunction;
+import org.example.interfaces.impl.KeyExpansionImpl;
 
 
 import java.io.IOException;
@@ -25,7 +27,8 @@ public class Main {
             log.error(e.getMessage(), e);
         }
 
-        EncoderDecoderSymmetric des = new Des(key);
+        EncryptorDecryptorSymmetric des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+
 
         byte[] paddedData = Des.addPkcs7Padding(fileData);
 
@@ -34,7 +37,7 @@ public class Main {
         for (int i = 0; i < paddedData.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(paddedData, i, block, 0, 8);
-            byte[] encryptedBlock = des.encode(block);
+            byte[] encryptedBlock = des.encrypt(block);
             System.arraycopy(encryptedBlock, 0, encryptedData, i, 8);
         }
 
@@ -42,7 +45,7 @@ public class Main {
         for (int i = 0; i < encryptedData.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(encryptedData, i, block, 0, 8);
-            byte[] decryptedBlock = des.decode(block);
+            byte[] decryptedBlock = des.decrypt(block);
             System.arraycopy(decryptedBlock, 0, decryptedData, i, 8);
         }
 
@@ -51,53 +54,5 @@ public class Main {
 
         log.info("исходный текст в hex: {}", bytesToHex(originalData));
 
-
-//        byte[] oneBlockOfMessage = null;
-//        try {
-//
-//            oneBlockOfMessage = Files.readAllBytes(Paths.get("8bytes.txt"));
-//
-//            log.info("Размер данных: {}", oneBlockOfMessage.length + " байт");
-//            log.info("Содержимое: {}", bytesToHex(oneBlockOfMessage));
-//        } catch (IOException e) {
-//            log.error(e.getMessage(), e);
-//        }
-//
-//        Des des = new Des();
-//
-//
-//
-//        byte[] chipherText = des.encode(oneBlockOfMessage, key);
-//
-//        log.info("шифроблок: {}", bytesToHex(chipherText));
-//
-//        byte[] startedText = des.decode(chipherText, key);
-//
-//        log.info("исходный текст в hex: {}", bytesToHex(startedText));
-
-
-
     }
 }
-
-
-//byte[] key = {(byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF};
-
-//        byte test = (byte)0xC0;
-//        log.info("BIN: {}",Integer.toBinaryString(test & 0xFF));
-//
-//        log.info("BIN: {}",Integer.toBinaryString(((test << 2) >> 7) & 1));
-
-
-
-//byte number = 12;
-//
-//
-//        log.info("HEX: {}", Integer.toHexString(number));
-//
-//
-//        log.info("BIN: {}",Integer.toBinaryString(number));
-//
-//number >>= 1;
-//
-//        log.info("BIN: {}",Integer.toBinaryString(number));

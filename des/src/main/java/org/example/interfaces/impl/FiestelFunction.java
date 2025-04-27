@@ -8,23 +8,17 @@ import org.example.utils.PermutationBits;
 import static org.example.utils.ToView.*;
 
 @Slf4j
-public class FiestelFunction implements EncryptionTransformation { // шифрующее преобразование //TODO: изменить на массив байтов
+public class FiestelFunction implements EncryptionTransformation {
 
     @Override
-    public int doFunction(int right, byte[] roundKey) {
+    public byte[] doFunction(byte[] right, byte[] roundKey) {
 
-        log.info("bin of right part in FiestelFunction: {}", intToHex(right));
+        log.info("bin of right part in FiestelFunction: {}", bytesToHex(right));
 
-        byte[] rightInBteArray = new byte[4];
 
-        for (int i = 3; i >= 0; i--) {
-            rightInBteArray[i] = (byte) (right & 0xFF);
-            right >>>= 8;
-        }
+        log.info("hex of bytes array of right part: {}", bytesToHex(right));
 
-        log.info("hex of bytes array of right part: {}", bytesToHex(rightInBteArray));
-
-        byte[] rightAfterExpansion = PermutationBits.permute(rightInBteArray, Tables.E, true, true);
+        byte[] rightAfterExpansion = PermutationBits.permute(right, Tables.E, true, true);
 
         log.info("hex of bytes array after expansion of right part: {}", bytesToHex(rightAfterExpansion));
 
@@ -85,18 +79,11 @@ public class FiestelFunction implements EncryptionTransformation { // шифру
         log.info("after S transform hex: {}", bytesToHex(intToByteArrayForPPermutation));
 
 
-        byte[] prePreResult = PermutationBits.permute(intToByteArrayForPPermutation, Tables.P, true, true);
+        byte[] result = PermutationBits.permute(intToByteArrayForPPermutation, Tables.P, true, true);
 
-        log.info("after P transform hex: {}", bytesToHex(prePreResult));
+        log.info("after P transform hex: {}", bytesToHex(result));
 
-        int result = 0;
 
-        for (int i = 0; i < 4; i++) {
-            result |= prePreResult[i] & 0xFF;
-            result <<= i == 3 ? 0 : 8;
-        }
-
-        log.info("after P transform: {}", intToHex(result));
 
         return result;
     }
