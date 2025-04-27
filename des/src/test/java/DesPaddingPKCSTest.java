@@ -1,3 +1,4 @@
+import org.example.context.Context;
 import org.example.des.Des;
 import org.example.interfaces.impl.FiestelFunction;
 import org.example.interfaces.impl.KeyExpansionImpl;
@@ -14,11 +15,11 @@ class DesPaddingPKCSTest {
     @Test
     void testEmptyInput() {
         byte[] original = new byte[0];
-        byte[] padded = Des.addPkcs7Padding(original);
+        byte[] padded = Context.addPkcs7Padding(original);
         assertEquals(8, padded.length);
         assertArrayEquals(new byte[]{0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08}, padded);
 
-        byte[] unpadded = Des.removePkcs7Padding(padded);
+        byte[] unpadded = Context.removePkcs7Padding(padded);
         assertArrayEquals(original, unpadded);
     }
 
@@ -26,23 +27,23 @@ class DesPaddingPKCSTest {
     void testPaddingAddAndRemove() {
 
         byte[] data1 = {0x01, 0x02, 0x03};
-        byte[] padded1 = Des.addPkcs7Padding(data1);
+        byte[] padded1 = Context.addPkcs7Padding(data1);
         assertEquals(8, padded1.length);
         assertArrayEquals(new byte[]{0x01, 0x02, 0x03, 0x05, 0x05, 0x05, 0x05, 0x05}, padded1);
 
-        byte[] unpadded1 = Des.removePkcs7Padding(padded1);
+        byte[] unpadded1 = Context.removePkcs7Padding(padded1);
         assertArrayEquals(data1, unpadded1);
 
 
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
-        byte[] padded2 = Des.addPkcs7Padding(data2);
+        byte[] padded2 = Context.addPkcs7Padding(data2);
         assertEquals(16, padded2.length);
         assertArrayEquals(
                 new byte[]{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08},
                 padded2
         );
 
-        byte[] unpadded2 = Des.removePkcs7Padding(padded2);
+        byte[] unpadded2 = Context.removePkcs7Padding(padded2);
         assertArrayEquals(data2, unpadded2);
     }
 
@@ -57,7 +58,7 @@ class DesPaddingPKCSTest {
         };
 
         byte[] original = "Hello".getBytes();
-        byte[] padded = Des.addPkcs7Padding(original);
+        byte[] padded = Context.addPkcs7Padding(original);
 
         Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
         byte[] encrypted = new byte[padded.length];
@@ -77,7 +78,7 @@ class DesPaddingPKCSTest {
             System.arraycopy(decryptedBlock, 0, decryptedPadded, i, 8);
         }
 
-        byte[] decrypted = Des.removePkcs7Padding(decryptedPadded);
+        byte[] decrypted = Context.removePkcs7Padding(decryptedPadded);
         assertArrayEquals(original, decrypted);
     }
 
@@ -93,7 +94,7 @@ class DesPaddingPKCSTest {
         byte[] original = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
 
 
-        byte[] padded = Des.addPkcs7Padding(original);
+        byte[] padded = Context.addPkcs7Padding(original);
         assertEquals(16, padded.length);
 
         Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
@@ -117,7 +118,7 @@ class DesPaddingPKCSTest {
         }
 
 
-        byte[] decrypted = Des.removePkcs7Padding(decryptedPadded);
+        byte[] decrypted = Context.removePkcs7Padding(decryptedPadded);
         assertArrayEquals(original, decrypted);
     }
 
@@ -137,7 +138,7 @@ class DesPaddingPKCSTest {
 
 
         byte[] fileData = Files.readAllBytes(inputFile);
-        byte[] paddedData = Des.addPkcs7Padding(fileData);
+        byte[] paddedData = Context.addPkcs7Padding(fileData);
 
         Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
         byte[] encryptedData = new byte[paddedData.length];
@@ -156,7 +157,7 @@ class DesPaddingPKCSTest {
             System.arraycopy(decryptedBlock, 0, decryptedPadded, i, 8);
         }
 
-        byte[] decryptedData = Des.removePkcs7Padding(decryptedPadded);
+        byte[] decryptedData = Context.removePkcs7Padding(decryptedPadded);
         String decryptedContent = new String(decryptedData);
 
         assertNotEquals(testContent, new String(encryptedData), "Шифрование не изменило данные");
@@ -178,14 +179,14 @@ class DesPaddingPKCSTest {
         Path emptyFile = Files.createTempFile("des-test-empty", ".txt");
 
         byte[] fileData = Files.readAllBytes(emptyFile);
-        byte[] paddedData = Des.addPkcs7Padding(fileData);
+        byte[] paddedData = Context.addPkcs7Padding(fileData);
         assertEquals(8, paddedData.length, "Пустой файл должен быть дополнен до 8 байт");
 
 
         Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
         byte[] encrypted = des.encrypt(paddedData);
         byte[] decryptedPadded = des.decrypt(encrypted);
-        byte[] decrypted = Des.removePkcs7Padding(decryptedPadded);
+        byte[] decrypted = Context.removePkcs7Padding(decryptedPadded);
 
         assertEquals(0, decrypted.length, "Пустой файл должен остаться пустым после дешифрования");
 

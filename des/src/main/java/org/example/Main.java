@@ -1,6 +1,7 @@
 package org.example;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.context.Context;
 import org.example.interfaces.EncryptorDecryptorSymmetric;
 import org.example.des.Des;
 import org.example.interfaces.impl.FiestelFunction;
@@ -30,7 +31,7 @@ public class Main {
         EncryptorDecryptorSymmetric des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
 
 
-        byte[] paddedData = Des.addPkcs7Padding(fileData);
+        byte[] paddedData = Context.addPkcs7Padding(fileData);
 
 
         byte[] encryptedData = new byte[paddedData.length];
@@ -50,7 +51,7 @@ public class Main {
         }
 
 
-        byte[] originalData = Des.removePkcs7Padding(decryptedData);
+        byte[] originalData = Context.removePkcs7Padding(decryptedData);
 
         log.info("исходный текст в hex: {}", bytesToHex(originalData));
 
