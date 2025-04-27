@@ -1,10 +1,10 @@
-package org.example.des;
+package org.example.interfaces.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.constants.Tables;
 import org.example.fiestel.FiestelNet;
+import org.example.interfaces.EncoderDecoderSymmetric;
 import org.example.interfaces.KeyExpansion;
-import org.example.interfaces.impl.KeyExpansionImpl;
 import org.example.utils.Pair;
 import org.example.utils.PermutationBits;
 
@@ -12,13 +12,28 @@ import static org.example.utils.ToView.bytesToHex;
 import static org.example.utils.ToView.intToHex;
 
 @Slf4j
-public class Des {
+public class Des implements EncoderDecoderSymmetric {
 
-    public byte[] encode(byte[] oneBlock, byte[] key) {
+    private byte[] key;
+
+    public Des() {}
+
+    public Des(byte[] key) {
+        this.key = key;
+    }
+
+    @Override
+    public void setKey(byte[] Key) {
+        this.key = Key;
+    }
+
+    @Override
+    public byte[] encode(byte[] oneBlock) {
         return encodeInner(oneBlock, key, true);
     }
 
-    public byte[] decode(byte[] oneBlock, byte[] key) {
+    @Override
+    public byte[] decode(byte[] oneBlock) {
         return encodeInner(oneBlock, key, false);
     }
 
@@ -36,7 +51,8 @@ public class Des {
 
         log.info("after IP hex: {}", bytesToHex(l0r0));
 
-        int l0 = 0, r0 = 0;
+        int l0 = 0;
+        int r0 = 0;
 
         for (int i = 0; i < 4; ++i) {
             byte oneByte = l0r0[i];

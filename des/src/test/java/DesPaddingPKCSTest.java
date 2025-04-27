@@ -1,4 +1,4 @@
-import org.example.des.Des;
+import org.example.interfaces.impl.Des;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -57,12 +57,12 @@ class DesPaddingPKCSTest {
         byte[] original = "Hello".getBytes();
         byte[] padded = Des.addPkcs7Padding(original);
 
-        Des des = new Des();
+        Des des = new Des(key);
         byte[] encrypted = new byte[padded.length];
         for (int i = 0; i < padded.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(padded, i, block, 0, 8);
-            byte[] encryptedBlock = des.encode(block, key);
+            byte[] encryptedBlock = des.encode(block);
             System.arraycopy(encryptedBlock, 0, encrypted, i, 8);
         }
 
@@ -71,7 +71,7 @@ class DesPaddingPKCSTest {
         for (int i = 0; i < encrypted.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(encrypted, i, block, 0, 8);
-            byte[] decryptedBlock = des.decode(block, key);
+            byte[] decryptedBlock = des.decode(block);
             System.arraycopy(decryptedBlock, 0, decryptedPadded, i, 8);
         }
 
@@ -94,14 +94,14 @@ class DesPaddingPKCSTest {
         byte[] padded = Des.addPkcs7Padding(original);
         assertEquals(16, padded.length);
 
-        Des des = new Des();
+        Des des = new Des(key);
 
 
         byte[] encrypted = new byte[padded.length];
         for (int i = 0; i < padded.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(padded, i, block, 0, 8);
-            byte[] encryptedBlock = des.encode(block, key);
+            byte[] encryptedBlock = des.encode(block);
             System.arraycopy(encryptedBlock, 0, encrypted, i, 8);
         }
 
@@ -110,7 +110,7 @@ class DesPaddingPKCSTest {
         for (int i = 0; i < encrypted.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(encrypted, i, block, 0, 8);
-            byte[] decryptedBlock = des.decode(block, key);
+            byte[] decryptedBlock = des.decode(block);
             System.arraycopy(decryptedBlock, 0, decryptedPadded, i, 8);
         }
 
@@ -137,12 +137,12 @@ class DesPaddingPKCSTest {
         byte[] fileData = Files.readAllBytes(inputFile);
         byte[] paddedData = Des.addPkcs7Padding(fileData);
 
-        Des des = new Des();
+        Des des = new Des(key);
         byte[] encryptedData = new byte[paddedData.length];
         for (int i = 0; i < paddedData.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(paddedData, i, block, 0, 8);
-            byte[] encryptedBlock = des.encode(block, key);
+            byte[] encryptedBlock = des.encode(block);
             System.arraycopy(encryptedBlock, 0, encryptedData, i, 8);
         }
 
@@ -150,7 +150,7 @@ class DesPaddingPKCSTest {
         for (int i = 0; i < encryptedData.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(encryptedData, i, block, 0, 8);
-            byte[] decryptedBlock = des.decode(block, key);
+            byte[] decryptedBlock = des.decode(block);
             System.arraycopy(decryptedBlock, 0, decryptedPadded, i, 8);
         }
 
@@ -180,9 +180,9 @@ class DesPaddingPKCSTest {
         assertEquals(8, paddedData.length, "Пустой файл должен быть дополнен до 8 байт");
 
 
-        Des des = new Des();
-        byte[] encrypted = des.encode(paddedData, key);
-        byte[] decryptedPadded = des.decode(encrypted, key);
+        Des des = new Des(key);
+        byte[] encrypted = des.encode(paddedData);
+        byte[] decryptedPadded = des.decode(encrypted);
         byte[] decrypted = Des.removePkcs7Padding(decryptedPadded);
 
         assertEquals(0, decrypted.length, "Пустой файл должен остаться пустым после дешифрования");

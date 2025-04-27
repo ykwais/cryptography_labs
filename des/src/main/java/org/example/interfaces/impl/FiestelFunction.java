@@ -1,14 +1,17 @@
-package org.example.fiestel;
+package org.example.interfaces.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.constants.Tables;
+import org.example.interfaces.EncryptionTransformation;
 import org.example.utils.PermutationBits;
 
 import static org.example.utils.ToView.*;
 
 @Slf4j
-public class FiestelFunction {
-    int doFunction(int right, byte[] roundKey) {
+public class FiestelFunction implements EncryptionTransformation { // шифрующее преобразование //TODO: изменить на массив байтов
+
+    @Override
+    public int doFunction(int right, byte[] roundKey) {
 
         log.info("bin of right part in FiestelFunction: {}", intToHex(right));
 

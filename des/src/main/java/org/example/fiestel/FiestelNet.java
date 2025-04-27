@@ -1,6 +1,7 @@
 package org.example.fiestel;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.interfaces.impl.FiestelFunction;
 import org.example.utils.Pair;
 
 import static org.example.utils.ToView.intToHex;

@@ -1,5 +1,5 @@
 package org.example.interfaces;
 
 public interface EncryptionTransformation {
-    byte[] transform(byte[] input, byte[] roundKey);
+    int doFunction(int input, byte[] roundKey);
 }

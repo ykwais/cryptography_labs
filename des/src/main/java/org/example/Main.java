@@ -1,7 +1,8 @@
 package org.example;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.des.Des;
+import org.example.interfaces.EncoderDecoderSymmetric;
+import org.example.interfaces.impl.Des;
 
 
 import java.io.IOException;
@@ -13,20 +14,18 @@ import static org.example.utils.ToView.bytesToHex;
 @Slf4j
 public class Main {
 
-
-
     public static void main(String[] args) {
 
         byte[] key = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
 
         byte[] fileData = null;
         try {
-            fileData = Files.readAllBytes(Paths.get("input.txt"));
+            fileData = Files.readAllBytes(Paths.get("8bytes.txt"));
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
 
-        Des des = new Des();
+        EncoderDecoderSymmetric des = new Des(key);
 
         byte[] paddedData = Des.addPkcs7Padding(fileData);
 
@@ -35,7 +34,7 @@ public class Main {
         for (int i = 0; i < paddedData.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(paddedData, i, block, 0, 8);
-            byte[] encryptedBlock = des.encode(block, key);
+            byte[] encryptedBlock = des.encode(block);
             System.arraycopy(encryptedBlock, 0, encryptedData, i, 8);
         }
 
@@ -43,12 +42,14 @@ public class Main {
         for (int i = 0; i < encryptedData.length; i += 8) {
             byte[] block = new byte[8];
             System.arraycopy(encryptedData, i, block, 0, 8);
-            byte[] decryptedBlock = des.decode(block, key);
+            byte[] decryptedBlock = des.decode(block);
             System.arraycopy(decryptedBlock, 0, decryptedData, i, 8);
         }
 
 
         byte[] originalData = Des.removePkcs7Padding(decryptedData);
+
+        log.info("исходный текст в hex: {}", bytesToHex(originalData));
 
 
 //        byte[] oneBlockOfMessage = null;
