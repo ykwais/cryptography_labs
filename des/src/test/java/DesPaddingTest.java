@@ -7,10 +7,12 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.SecureRandom;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DesPaddingPKCSTest {
+class DesPaddingTest {
 
     @Test
     void testEmptyInput() {
@@ -192,4 +194,227 @@ class DesPaddingPKCSTest {
 
         Files.deleteIfExists(emptyFile);
     }
+
+
+    @Test
+    void testZerosPadding_PartialBlock() {
+        byte[] data = {0x01, 0x02, 0x03};
+        byte[] padded = Context.addZerosPadding(data);
+        assertEquals(8, padded.length);
+        assertArrayEquals(new byte[]{0x01, 0x02, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, padded);
+
+        byte[] unpadded = Context.removeZerosPadding(padded);
+        assertArrayEquals(data, unpadded);
+    }
+
+    @Test
+    void testZerosPadding_AmbiguousData() {
+        byte[] trickyData1 = {0x01, 0x02, 0x00, 0x00};
+        byte[] trickyData2 = {0x01, 0x02};
+
+        byte[] padded1 = Context.addZerosPadding(trickyData1);
+        byte[] padded2 = Context.addZerosPadding(trickyData2);
+        assertArrayEquals(
+                new byte[]{0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+                padded1
+        );
+        assertArrayEquals(padded1, padded2);
+
+        byte[] unpadded = Context.removeZerosPadding(padded1);
+        assertArrayEquals(new byte[]{0x01, 0x02}, unpadded);
+    }
+
+    @Test
+    void testZerosPadding_RealZerosInData() {
+
+        byte[] dataWithMiddleZero = {0x01, 0x00, 0x02, 0x03};
+        byte[] padded = Context.addZerosPadding(dataWithMiddleZero);
+
+        byte[] unpadded = Context.removeZerosPadding(padded);
+        assertArrayEquals(dataWithMiddleZero, unpadded);
+    }
+
+
+    @Test
+    void testZerosPadding_DataEndsWithZero() {
+        byte[] data = {0x01, 0x02, 0x00};
+        byte[] padded = Context.addZerosPadding(data);
+
+
+        byte[] unpadded = Context.removeZerosPadding(padded);
+
+        assertNotEquals(data.length, unpadded.length);
+        assertArrayEquals(new byte[]{0x01, 0x02}, unpadded);
+    }
+
+    @Test
+    void testZerosPadding_LimitationDocumentation() {
+        byte[] originalData1 = {0x01, 0x02, 0x00};
+        byte[] originalData2 = {0x01, 0x02};
+
+        byte[] padded1 = Context.addZerosPadding(originalData1);
+        byte[] padded2 = Context.addZerosPadding(originalData2);
+
+
+        byte[] unpadded1 = Context.removeZerosPadding(padded1);
+        byte[] unpadded2 = Context.removeZerosPadding(padded2);
+
+        assertArrayEquals(originalData2, unpadded2);
+        assertArrayEquals(originalData2, unpadded1);
+    }
+
+
+    @Test
+    void testAddPadding_EmptyData() {
+        byte[] data = new byte[0];
+        byte[] padded = Context.addIso10126Padding(data);
+
+        assertEquals(8, padded.length);
+        assertEquals(padded[padded.length - 1], (byte) 8);
+    }
+
+    @Test
+    void testAddPadding_PartialBlock() {
+        byte[] data = {0x01, 0x02, 0x03};
+        byte[] padded = Context.addIso10126Padding(data);
+
+        assertEquals(8, padded.length);
+        assertEquals(padded[padded.length - 1], (byte) 5);
+        assertNotEquals(0, padded[3]);
+    }
+
+    @Test
+    void testAddPadding_FullBlock() {
+        byte[] fullBlock = new byte[8];
+        Arrays.fill(fullBlock, (byte) 1);
+
+        byte[] padded = Context.addIso10126Padding(fullBlock);
+
+        assertEquals(16, padded.length);
+        assertEquals(padded[padded.length - 1], (byte) 8);
+    }
+
+    @Test
+    void testRemovePadding_NormalCase() {
+        byte[] padded = new byte[8];
+        Arrays.fill(padded, (byte) 0xAA);
+        padded[7] = 3;
+
+        byte[] unpadded = Context.removeIso10126Padding(padded);
+
+        assertEquals(5, unpadded.length);
+    }
+
+    @Test
+    void testRemovePadding_NoPadding() {
+        byte[] data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x00};
+        byte[] result = Context.removeIso10126Padding(data);
+
+        assertArrayEquals(data, result);
+    }
+
+    @Test
+    void testRemovePadding_InvalidPadding() {
+        byte[] invalidPadding = new byte[8];
+        invalidPadding[7] = 9;
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            Context.removeIso10126Padding(invalidPadding);
+        });
+    }
+
+    @Test
+    void testFullCycle_RandomData() {
+        for (int i = 0; i < 20; i++) {
+            byte[] original = new byte[i];
+            new SecureRandom().nextBytes(original);
+
+            byte[] padded = Context.addIso10126Padding(original);
+            byte[] unpadded = Context.removeIso10126Padding(padded);
+
+            assertArrayEquals(original, unpadded,
+                    "Failed for length " + i + ": " + Arrays.toString(original));
+        }
+    }
+
+
+
+
+    @Test
+    void addAnsiX923Padding_ShouldAddFullBlockPadding_WhenInputEmpty() {
+        byte[] data = new byte[0];
+        byte[] padded = Context.addAnsiX923Padding(data);
+
+        assertArrayEquals(
+                new byte[]{0, 0, 0, 0, 0, 0, 0, 8},
+                padded
+        );
+    }
+
+    @Test
+    void addAnsiX923Padding_ShouldAddPartialPadding_WhenInputNotFullBlock() {
+        byte[] data = {0x01, 0x02};
+        byte[] padded = Context.addAnsiX923Padding(data);
+
+        assertArrayEquals(
+                new byte[]{0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 6},
+                padded
+        );
+    }
+
+    @Test
+    void addAnsiX923Padding_ShouldAddNewBlock_WhenInputIsFullBlock() {
+        byte[] fullBlock = new byte[8];
+        Arrays.fill(fullBlock, (byte) 0xFF);
+
+        byte[] padded = Context.addAnsiX923Padding(fullBlock);
+
+        assertEquals(16, padded.length);
+        assertEquals(8, padded[15]);
+    }
+
+
+    @Test
+    void removeAnsiX923Padding_ShouldRemovePadding_WhenPaddingPresent() {
+        byte[] padded = {0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06};
+        byte[] unpadded = Context.removeAnsiX923Padding(padded);
+
+        assertArrayEquals(new byte[]{0x01, 0x02}, unpadded);
+    }
+
+    @Test
+    void removeAnsiX923Padding_ShouldReturnOriginal_WhenNoPadding() {
+        byte[] data = {0x01, 0x02, 0x03, 0x00};
+        byte[] result = Context.removeAnsiX923Padding(data);
+
+        assertArrayEquals(data, result);
+    }
+
+    @Test
+    void removeAnsiX923Padding_ShouldThrow_WhenInvalidPaddingLength() {
+        byte[] invalid = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09}; // >8
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            Context.removeAnsiX923Padding(invalid);
+        });
+    }
+
+
+    @Test
+    void addAndRemoveAnsiX923Padding_ShouldReturnOriginal_ForRandomData() {
+        SecureRandom random = new SecureRandom();
+        for (int size : new int[]{0, 1, 7, 8, 9, 15, 16}) {
+            byte[] original = new byte[size];
+            random.nextBytes(original);
+
+            byte[] padded = Context.addAnsiX923Padding(original);
+            byte[] unpadded = Context.removeAnsiX923Padding(padded);
+
+            assertArrayEquals(original, unpadded,
+                    "Failed for size: " + size);
+        }
+    }
+
+
+
 }
