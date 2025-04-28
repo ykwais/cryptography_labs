@@ -9,8 +9,8 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Random;
 
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -20,7 +20,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 @Slf4j
 class ContextAllPaddingTest {
     private static final byte[] TEST_KEY = new byte[8];
-    private final Random random = new Random();
+    private static final byte[] TEST_IV = new byte[8];
+    private final SecureRandom random = new SecureRandom();
 
     @TempDir
     Path tempDir;
@@ -35,7 +36,8 @@ class ContextAllPaddingTest {
                 TypeAlgorithm.DES,
                 TEST_KEY,
                 CipherMode.ECB,
-                mode
+                mode,
+                TEST_IV
         );
 
         Path inputFile = tempDir.resolve("input.bin");
@@ -77,7 +79,8 @@ class ContextAllPaddingTest {
                 TypeAlgorithm.DES,
                 TEST_KEY,
                 CipherMode.ECB,
-                PaddingMode.ZEROS
+                PaddingMode.ZEROS,
+                TEST_IV
         );
 
         Path inputFile = tempDir.resolve("zeros.bin");
@@ -103,8 +106,8 @@ class ContextAllPaddingTest {
 
     @Test
     void allModes_ShouldHandleVariousLengths() throws IOException {
-        // Исключаем длину 0, так как требует особой обработки
-        int[] lengths = {/*1, 7, 8, 9, 15, 16, 511, */512};
+
+        int[] lengths = {1, 7, 8, 9, 15, 16, 511, 512, 1023, 4097, 8100, 8000000};
 
         for (PaddingMode mode : PaddingMode.values()) {
             System.out.println("Testing mode: " + mode);

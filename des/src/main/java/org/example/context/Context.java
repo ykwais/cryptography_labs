@@ -8,7 +8,6 @@ import org.example.interfaces.EncryptorDecryptorSymmetric;
 import org.example.interfaces.impl.FiestelFunction;
 import org.example.interfaces.impl.KeyExpansionImpl;
 
-import javax.imageio.IIOException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,11 +23,12 @@ public class Context {
     private final CipherMode cipherMode;
     private final PaddingMode paddingMode;
     private final EncryptorDecryptorSymmetric encryptorDecryptorSymmetric;
-    private static final int BUFFER_SIZE = 512;
+    private static final int BUFFER_SIZE = 4096;
+    private final byte[] initialVector;
 
 
-    public Context(TypeAlgorithm typeAlgorithm, byte[] key, CipherMode cipherMode, PaddingMode paddingMode) {
-
+    public Context(TypeAlgorithm typeAlgorithm, byte[] key, CipherMode cipherMode, PaddingMode paddingMode, byte[] initializationVector) {
+        this.initialVector = initializationVector;
         this.cipherMode = cipherMode;
         this.paddingMode = paddingMode;
         if (Objects.requireNonNull(typeAlgorithm) == TypeAlgorithm.DES) {
@@ -86,73 +86,58 @@ public class Context {
         }
     }
 
-//    public void encrypt(Path inputPath, Path encryptedPath) throws IOException {
-//        try (InputStream in = Files.newInputStream(inputPath);
-//            OutputStream out = Files.newOutputStream(encryptedPath)) {
-//
-//            byte[] buffer = new byte[BUFFER_SIZE];
-//            int bytesRead;
-//            while ((bytesRead = in.read(buffer)) != -1) {
-//                byte[] paddedBuffer = Arrays.copyOf(buffer, bytesRead);
-//                if (bytesRead < BUFFER_SIZE) {
-//                    paddedBuffer = addPadding(Arrays.copyOf(buffer, bytesRead));
-//                }
-//                byte[] cipherBlock = encryptDecryptInner(paddedBuffer, true);
-//                out.write(cipherBlock);
-//            }
-//        }
-//    }
-//
-//    public void decrypt(Path encryptedFilePath, Path decryptedFilePath) throws IOException, IllegalArgumentException {
-//        try (InputStream in = Files.newInputStream(encryptedFilePath);
-//             OutputStream out = Files.newOutputStream(decryptedFilePath)) {
-//
-//            byte[] buffer = new byte[BUFFER_SIZE];
-//            byte[] lastBlock = null;
-//            int bytesRead;
-//
-//            while ((bytesRead = in.read(buffer)) != -1) {
-//                byte[] decrypted = encryptDecryptInner(Arrays.copyOf(buffer, bytesRead), false);
-//
-//                if (lastBlock != null) {
-//                    out.write(lastBlock);
-//                }
-//
-//                lastBlock = decrypted;
-//            }
-//
-//            if (lastBlock != null) {
-//                byte[] finalData = removePadding(lastBlock);
-//                out.write(finalData);
-//            }
-//        }
-//    }
-
-
-    //            byte[] buffer = new byte[BUFFER_SIZE];
-//            int bytesRead;
-//            while ((bytesRead = in.read(buffer)) != -1) {
-//                byte[] cipherBlock = encryptDecryptInner(Arrays.copyOf(buffer, bytesRead), false);
-//                if (bytesRead < BUFFER_SIZE) {
-//                    cipherBlock = removePadding(cipherBlock);
-//                }
-//                byte[] removedPadding = removePadding(cipherBlock);
-//                out.write(removedPadding);
-//            }
-
-
     public byte[] encryptDecryptInner(byte[] data, boolean isEncrypt) {
         byte[] result = new byte[data.length];
         int amountBlockBy8Bytes = data.length / 8;
 
-        if (cipherMode == CipherMode.ECB) {
-            IntStream.range(0, amountBlockBy8Bytes).parallel().forEach(i -> {
-                int offset = i * 8;
-                byte[] block = Arrays.copyOfRange(data, offset, offset + 8);
-                byte[] preResult = isEncrypt ? encryptorDecryptorSymmetric.encrypt(block) : encryptorDecryptorSymmetric.decrypt(block);
-                System.arraycopy(preResult, 0, result, offset, 8);
-            });
+        switch(cipherMode) {
+            case ECB:
+                IntStream.range(0, amountBlockBy8Bytes).parallel().forEach(i -> {
+                    int offset = i * 8;
+                    byte[] block = Arrays.copyOfRange(data, offset, offset + 8);
+                    byte[] preResult = isEncrypt ? encryptorDecryptorSymmetric.encrypt(block) : encryptorDecryptorSymmetric.decrypt(block);
+                    System.arraycopy(preResult, 0, result, offset, 8);
+                });
+                break;
+            case CBC:
+                if (isEncrypt) {
+                    byte[] blockMessage = Arrays.copyOfRange(data,0, 8 );
+                    blockMessage = xorByteArrays(blockMessage, initialVector);
+                    byte[] resultPrev = encryptorDecryptorSymmetric.encrypt(blockMessage);
+                    System.arraycopy(resultPrev, 0, result, 0, 8);
+                    for(int i = 8; i < data.length; i += 8) {
+                        blockMessage = Arrays.copyOfRange(data, i, i + 8);
+                        blockMessage = xorByteArrays(blockMessage, resultPrev);
+                        resultPrev = encryptorDecryptorSymmetric.encrypt(blockMessage);
+                        System.arraycopy(resultPrev, 0, result, i, 8);
+                    }
+                } else {
+                    byte[] decodedBlocks = new byte[data.length];
+                    IntStream.range(0, amountBlockBy8Bytes).parallel().forEach(i -> {
+                        int offset = i * 8;
+                        byte[] block = Arrays.copyOfRange(data, offset, offset + 8);
+                        byte[] preResult = encryptorDecryptorSymmetric.decrypt(block);
+                        System.arraycopy(preResult, 0, decodedBlocks, offset, 8);
+                    });
+
+                    byte[] arrayCipherTexts = new byte[data.length + 8];
+                    System.arraycopy(initialVector, 0, arrayCipherTexts, 0, initialVector.length);
+                    System.arraycopy(data, 0, arrayCipherTexts, initialVector.length, data.length);
+
+                    IntStream.range(0, amountBlockBy8Bytes).parallel().forEach(i -> {
+                        int offset = i * 8;
+                        byte[] firstBlock = Arrays.copyOfRange(arrayCipherTexts, offset, offset + 8);
+                        byte[] secondBlock = Arrays.copyOfRange(decodedBlocks, offset, offset + 8);
+                        byte[] message = xorByteArrays(firstBlock, secondBlock);
+                        System.arraycopy(message, 0, result, offset, 8);
+                    });
+                }
+                break;
+            default:
+                throw new UnsupportedOperationException("Unsupported cipher mode: " + cipherMode);
         }
+
+
 
         return result;
     }
@@ -253,6 +238,17 @@ public class Context {
         byte[] unpadded = new byte[length];
         System.arraycopy(data, 0, unpadded, 0, unpadded.length);
         return unpadded;
+    }
+
+    private byte[] xorByteArrays(byte[] a, byte[] b) {
+        if (a.length != b.length) {
+            throw new IllegalArgumentException("Arrays have different lengths");
+        }
+        byte[] result = new byte[a.length];
+        for (int i = 0; i < a.length; ++i) {
+            result[i] = (byte) (a[i] ^ b[i]);
+        }
+        return result;
     }
 
 }

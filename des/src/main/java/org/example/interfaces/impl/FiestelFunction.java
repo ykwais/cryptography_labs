@@ -13,26 +13,26 @@ public class FiestelFunction implements EncryptionTransformation {
     @Override
     public byte[] doFunction(byte[] right, byte[] roundKey) {
 
-        log.info("bin of right part in FiestelFunction: {}", bytesToHex(right));
+        //log.info("bin of right part in FiestelFunction: {}", bytesToHex(right));
 
 
-        log.info("hex of bytes array of right part: {}", bytesToHex(right));
+        //log.info("hex of bytes array of right part: {}", bytesToHex(right));
 
         byte[] rightAfterExpansion = PermutationBits.permute(right, Tables.E, true, true);
 
-        log.info("hex of bytes array after expansion of right part: {}", bytesToHex(rightAfterExpansion));
+        //log.info("hex of bytes array after expansion of right part: {}", bytesToHex(rightAfterExpansion));
 
-        log.info("hex of ROUND KEY                                : {}", bytesToHex(roundKey));
-
-        log.info("bin right after expansion: {}", bytesToBinary(rightAfterExpansion));
-
-        log.info("bin after expan ROUND KEY: {}", bytesToBinary(roundKey));
+//        log.info("hex of ROUND KEY                                : {}", bytesToHex(roundKey));
+//
+//        log.info("bin right after expansion: {}", bytesToBinary(rightAfterExpansion));
+//
+//        log.info("bin after expan ROUND KEY: {}", bytesToBinary(roundKey));
 
         byte[] afterXor = xorByteArrays(rightAfterExpansion, roundKey);
 
-        log.info("bin after xor            : {}", bytesToBinary(afterXor));
-
-        log.info("hex after xor: {}", bytesToHex(afterXor));
+//        log.info("bin after xor            : {}", bytesToBinary(afterXor));
+//
+//        log.info("hex after xor: {}", bytesToHex(afterXor));
 
 
         long forDivisionOn6Bit = 0;
@@ -58,7 +58,7 @@ public class FiestelFunction implements EncryptionTransformation {
 
         for (int i = 0; i < 8; ++i) {
             byte oneByte = bytesBy6Bit[i];
-            log.info("oneByte in hex: {}", String.format("%02X ", oneByte));
+            //log.info("oneByte in hex: {}", String.format("%02X ", oneByte));
             int row = (((oneByte & 0x20) >>> 4) | (oneByte & 0x01) ) & 0xFF;
             int col = ((oneByte & 0x1E) >>> 1) & 0xFF;
 
@@ -66,7 +66,7 @@ public class FiestelFunction implements EncryptionTransformation {
             preResult <<= i == 7 ? 0 : 4;
         }
 
-        log.info("after S transform: {}", intToHex(preResult));
+        //log.info("after S transform: {}", intToHex(preResult));
 
         byte[] intToByteArrayForPPermutation = new byte[4];
 
@@ -76,12 +76,12 @@ public class FiestelFunction implements EncryptionTransformation {
             preResult >>>= 8;
         }
 
-        log.info("after S transform hex: {}", bytesToHex(intToByteArrayForPPermutation));
+        //log.info("after S transform hex: {}", bytesToHex(intToByteArrayForPPermutation));
 
 
         byte[] result = PermutationBits.permute(intToByteArrayForPPermutation, Tables.P, true, true);
 
-        log.info("after P transform hex: {}", bytesToHex(result));
+        //log.info("after P transform hex: {}", bytesToHex(result));
 
 
 

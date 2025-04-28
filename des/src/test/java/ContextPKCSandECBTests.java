@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ContextPKCSandECBTests {
     private static final byte[] TEST_KEY = {0x01, 0x23, 0x45, 0x67, (byte)0x89, (byte)0xAB, (byte)0xCD, (byte)0xEF};
+    private static final byte[] TEST_IV = {0x01, 0x23, 0x45, 0x67, (byte)0x89, (byte)0xAB, (byte)0xCD, (byte)0xEF};
     private static final String TEST_TEXT = "Hello DES Encryption! Тест 1234";
     private static Path tempInputFile;
     private static Path tempEncryptedFile;
@@ -42,7 +43,8 @@ class ContextPKCSandECBTests {
                 TypeAlgorithm.DES,
                 TEST_KEY,
                 CipherMode.ECB,
-                PaddingMode.PKCS7
+                PaddingMode.PKCS7,
+                TEST_IV
         );
 
 
@@ -67,7 +69,8 @@ class ContextPKCSandECBTests {
                 TypeAlgorithm.DES,
                 TEST_KEY,
                 CipherMode.ECB,
-                PaddingMode.PKCS7
+                PaddingMode.PKCS7,
+                TEST_IV
         );
 
         context.encrypt(emptyFile, tempEncryptedFile);
@@ -110,10 +113,11 @@ class ContextPKCSandECBTests {
                 TypeAlgorithm.DES,
                 TEST_KEY,
                 CipherMode.ECB,
-                PaddingMode.PKCS7
+                PaddingMode.PKCS7,
+                TEST_IV
         );
 
-        byte[] largeData = new byte[4096]; // 4KB данных
+        byte[] largeData = new byte[4096];
         new Random().nextBytes(largeData);
 
         byte[] encrypted = context.encryptDecryptInner(largeData, true);
@@ -122,5 +126,71 @@ class ContextPKCSandECBTests {
 
         byte[] decrypted = context.encryptDecryptInner(encrypted, false);
         assertArrayEquals(largeData, decrypted);
+    }
+
+    @Test
+    void testCBC() throws Exception {
+        Context context = new Context(
+                TypeAlgorithm.DES,
+                TEST_KEY,
+                CipherMode.CBC,
+                PaddingMode.PKCS7,
+                TEST_IV
+        );
+
+
+        context.encrypt(tempInputFile, tempEncryptedFile);
+
+
+        byte[] encryptedData = Files.readAllBytes(tempEncryptedFile);
+        assertNotEquals(TEST_TEXT, new String(encryptedData));
+        assertTrue(encryptedData.length >= TEST_TEXT.getBytes().length);
+
+
+        context.decrypt(tempEncryptedFile, tempDecryptedFile);
+
+        byte[] decryptedData = Files.readAllBytes(tempDecryptedFile);
+        assertEquals(TEST_TEXT, new String(decryptedData));
+    }
+
+    @Test
+    void testParallelCBC() {
+        Context context = new Context(
+                TypeAlgorithm.DES,
+                TEST_KEY,
+                CipherMode.CBC,
+                PaddingMode.PKCS7,
+                TEST_IV
+        );
+
+        byte[] largeData = new byte[4096];
+        new Random().nextBytes(largeData);
+
+        byte[] encrypted = context.encryptDecryptInner(largeData, true);
+        assertNotNull(encrypted);
+        assertEquals(largeData.length, encrypted.length);
+
+        byte[] decrypted = context.encryptDecryptInner(encrypted, false);
+        assertArrayEquals(largeData, decrypted);
+    }
+
+    @Test
+    void testEmptyFileCBC() throws Exception {
+        Path emptyFile = Files.createTempFile("des-empty", ".txt");
+        Context context = new Context(
+                TypeAlgorithm.DES,
+                TEST_KEY,
+                CipherMode.CBC,
+                PaddingMode.PKCS7,
+                TEST_IV
+        );
+
+        context.encrypt(emptyFile, tempEncryptedFile);
+
+        context.decrypt(tempEncryptedFile, tempDecryptedFile);
+
+        assertEquals(0, Files.size(tempDecryptedFile));
+
+        Files.delete(emptyFile);
     }
 }

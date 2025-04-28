@@ -21,7 +21,7 @@ public class KeyExpansionImpl implements KeyExpansion {
 
         byte[] c0d0 = PermutationBits.permute(key, Tables.PC1, true, true);
 
-        log.info(bytesToHex(c0d0));
+        //log.info(bytesToHex(c0d0));
 
         int c0 = 0;
         for (int i = 0; i < 4; i++) {
@@ -32,7 +32,7 @@ public class KeyExpansionImpl implements KeyExpansion {
 
         c0 >>>= 4;
 
-        log.info("c0 HEX: {}", intToHex(c0));
+        //log.info("c0 HEX: {}", intToHex(c0));
 
         int d0 = 0;
         for (int i = 3; i < 7; i++) {
@@ -44,7 +44,7 @@ public class KeyExpansionImpl implements KeyExpansion {
         d0 <<= 4;
         d0 >>>= 4;
 
-        log.info("d0 HEX: {}", intToHex(d0));
+        //log.info("d0 HEX: {}", intToHex(d0));
 
         int cPrev = c0;
         int dPrev = d0;
