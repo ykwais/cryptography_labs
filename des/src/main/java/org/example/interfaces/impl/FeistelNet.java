@@ -9,7 +9,6 @@ import org.example.utils.Pair;
 import org.example.utils.PermutationBits;
 
 
-import static org.example.utils.ToView.bytesToHex;
 
 
 @Slf4j
@@ -43,19 +42,16 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
 
         byte[][] roundKeys = keyExpansion.generateRoundKeys(key);
 
-        //log.info("oneBlock hex: {}", bytesToHex(oneBlock));
 
         byte[] l0r0 = PermutationBits.permute(oneBlock, Tables.IP, true, true);
 
-        //log.info("after IP hex: {}", bytesToHex(l0r0));
 
         byte[] l0 = new byte[4];
         byte[] r0 = new byte[4];
 
         System.arraycopy(l0r0, 0, l0, 0, 4);
         System.arraycopy(l0r0, 4, r0, 0, 4);
-        //log.info("l0 HEX: {}", bytesToHex(l0));
-        //log.info("r0 HEX: {}", bytesToHex(r0));
+
 
         Pair<byte[], byte[]> l16r16 = rounds16OfFiestelNet(l0, r0, roundKeys, isEncrypt);
 
@@ -68,13 +64,7 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
         System.arraycopy(r16, 0, preCipherBlock, 4, 4);
 
 
-        //log.info("l16r16: {}", bytesToHex(preCipherBlock));
-
-        byte[] cipherBlock = PermutationBits.permute(preCipherBlock, Tables.IP_INV, true, true);
-
-        //log.info("cipherBlock hex: {}", bytesToHex(cipherBlock));
-
-        return cipherBlock;
+        return PermutationBits.permute(preCipherBlock, Tables.IP_INV, true, true);
     }
 
     private Pair<byte[], byte[]> rounds16OfFiestelNet(byte[] l0, byte[] r0, byte[][] roundKeys, boolean isEncrypt) {
@@ -84,7 +74,7 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
 
         for (int i = 0; i < 16; ++i) {
 
-            //log.info("ROUND: {}", i+1);
+
 
             byte[] lNext = r;
 
@@ -95,13 +85,10 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
             l = lNext;
             r = rNext;
 
-            //log.info("L next: {}", bytesToHex(l));
-            //log.info("R next: {}", bytesToHex(r));
+
 
         }
 
-        //log.info("L last: {}", bytesToHex(l));
-        //log.info("R last: {}", bytesToHex(r));
 
         return new Pair<>(l,r);
     }

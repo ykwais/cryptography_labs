@@ -1,6 +1,9 @@
 package org.example;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.constants.CipherMode;
+import org.example.constants.PaddingMode;
+import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
 import org.example.interfaces.EncryptorDecryptorSymmetric;
 import org.example.des.Des;
@@ -21,6 +24,8 @@ public class Main {
 
         byte[] key = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
         byte[] initialVector = {(byte)0x01, (byte)0x01, (byte)0x01, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
+
+        Context context = new Context(TypeAlgorithm.DES, key, CipherMode.CTR, PaddingMode.ANSI_X923, initialVector);
 
         byte[] fileData = null;
         try {
@@ -55,6 +60,11 @@ public class Main {
         byte[] originalData = Context.removePkcs7Padding(decryptedData);
 
         log.info("исходный текст в hex: {}", bytesToHex(originalData));
+
+
+
+        byte[] res = context.encryptDecryptInner(fileData, true);
+        log.info("res: {}", bytesToHex(res));
 
     }
 }

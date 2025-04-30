@@ -56,6 +56,16 @@ class PermutationBitsTest {
     }
 
     @Test
+    void testStartIndexFromOne2() {
+        byte[] input = {(byte) 0b10000010};
+        int[] pBlock = new int[]{2};
+
+        byte[] result = PermutationBits.permute(input, pBlock, false, true);
+
+        assertEquals((byte) 0b10000000, result[0]);
+    }
+
+    @Test
     void testZeroOutputBits() {
         byte[] input = {(byte) 0xFF};
         int[] pBlock = new int[0];

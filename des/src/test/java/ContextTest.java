@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 class ContextTest {
     private static final byte[] TEST_KEY = new byte[8];
     private static final byte[] TEST_IV = new byte[8];
+    private static final int TEST_DELTA = 53;
     private final SecureRandom random = new SecureRandom();
 
     @TempDir
@@ -26,7 +27,7 @@ class ContextTest {
         int[] lengths = {1, 7, 8, 9, 15, 16, 511, 512, 1023, 4097, 8100, 80000};
 
         for (CipherMode cipherMode : CipherMode.values()) {
-            for (PaddingMode paddingMode : PaddingMode.values()) {
+            for (PaddingMode paddingMode : PaddingMode.values()) { // крч может не совпадать Zeros так как удалит лишние нули, но тест с длиной 1 проходит так как затираем не больше 7 байтов
                 System.out.println("Testing cipher mode: " + cipherMode + " with padding: " + paddingMode);
 
                 for (int len : lengths) {
@@ -52,7 +53,8 @@ class ContextTest {
                 TEST_KEY,
                 cipherMode,
                 paddingMode,
-                TEST_IV
+                TEST_IV,
+                TEST_DELTA
         );
 
         Path inputFile = tempDir.resolve("input_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");
@@ -72,12 +74,18 @@ class ContextTest {
     void shouldHandleEmptyFile() throws IOException {
         testModeCombination(CipherMode.ECB, PaddingMode.PKCS7, 0);
         testModeCombination(CipherMode.CBC, PaddingMode.ISO_10126, 0);
+        testModeCombination(CipherMode.OFB, PaddingMode.ISO_10126, 0);
+
     }
 
     @Test
     void shouldHandleLargeFile() throws IOException {
         testModeCombination(CipherMode.ECB, PaddingMode.PKCS7, 10_000_000);
         testModeCombination(CipherMode.CBC, PaddingMode.ANSI_X923, 10_000_000);
+        testModeCombination(CipherMode.OFB, PaddingMode.ISO_10126, 10_000_000);
+        testModeCombination(CipherMode.CFB, PaddingMode.ISO_10126, 10_000_000);
+        testModeCombination(CipherMode.PCBC, PaddingMode.ISO_10126, 10_000_000);
+
     }
 
     @Test
@@ -93,4 +101,47 @@ class ContextTest {
         testModeCombination(CipherMode.CBC, PaddingMode.ISO_10126, 15);
         testModeCombination(CipherMode.CBC, PaddingMode.ISO_10126, 23);
     }
+
+    @Test
+    void shouldHandleExactBlockSizeOFB() throws IOException {
+        testModeCombination(CipherMode.OFB, PaddingMode.PKCS7, 8);
+        testModeCombination(CipherMode.OFB, PaddingMode.PKCS7, 16);
+        testModeCombination(CipherMode.OFB, PaddingMode.PKCS7, 24);
+    }
+
+    @Test
+    void shouldHandleOneByteLessThanBlockSizeOFB() throws IOException {
+        testModeCombination(CipherMode.OFB, PaddingMode.ISO_10126, 7);
+        testModeCombination(CipherMode.OFB, PaddingMode.ISO_10126, 15);
+        testModeCombination(CipherMode.OFB, PaddingMode.ISO_10126, 23);
+    }
+
+    @Test
+    void shouldHandleExactBlockSizeCFB() throws IOException {
+        testModeCombination(CipherMode.CFB, PaddingMode.PKCS7, 8);
+        testModeCombination(CipherMode.CFB, PaddingMode.PKCS7, 16);
+        testModeCombination(CipherMode.CFB, PaddingMode.PKCS7, 24);
+    }
+
+    @Test
+    void shouldHandleOneByteLessThanBlockSizeCFB() throws IOException {
+        testModeCombination(CipherMode.CFB, PaddingMode.ISO_10126, 7);
+        testModeCombination(CipherMode.CFB, PaddingMode.ISO_10126, 15);
+        testModeCombination(CipherMode.CFB, PaddingMode.ISO_10126, 23);
+    }
+
+    @Test
+    void shouldHandleExactBlockSizePCBC() throws IOException {
+        testModeCombination(CipherMode.PCBC, PaddingMode.PKCS7, 8);
+        testModeCombination(CipherMode.PCBC, PaddingMode.PKCS7, 16);
+        testModeCombination(CipherMode.PCBC, PaddingMode.PKCS7, 24);
+    }
+
+    @Test
+    void shouldHandleOneByteLessThanBlockSizePCBC() throws IOException {
+        testModeCombination(CipherMode.PCBC, PaddingMode.ISO_10126, 7);
+        testModeCombination(CipherMode.PCBC, PaddingMode.ISO_10126, 15);
+        testModeCombination(CipherMode.PCBC, PaddingMode.ISO_10126, 23);
+    }
 }
+

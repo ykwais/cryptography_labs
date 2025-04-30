@@ -2,5 +2,10 @@ package org.example.constants;
 
 public enum CipherMode {
     ECB,
-    CBC
+    CBC,
+    OFB,
+    CFB,
+    PCBC,
+    CTR,
+    RD
 }

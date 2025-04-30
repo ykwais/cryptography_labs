@@ -1,5 +1,6 @@
 package org.example.context;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.constants.PaddingMode;
 import org.example.constants.CipherMode;
 import org.example.constants.TypeAlgorithm;
@@ -11,6 +12,7 @@ import org.example.interfaces.impl.KeyExpansionImpl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
@@ -18,6 +20,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
+
+@Slf4j
 public class Context {
 
     private final CipherMode cipherMode;
@@ -25,9 +29,10 @@ public class Context {
     private final EncryptorDecryptorSymmetric encryptorDecryptorSymmetric;
     private static final int BUFFER_SIZE = 4096;
     private final byte[] initialVector;
+    private Integer deltaForRD = null;
 
 
-    public Context(TypeAlgorithm typeAlgorithm, byte[] key, CipherMode cipherMode, PaddingMode paddingMode, byte[] initializationVector) {
+    public Context(TypeAlgorithm typeAlgorithm, byte[] key, CipherMode cipherMode, PaddingMode paddingMode, byte[] initializationVector, Object... extras) {
         this.initialVector = initializationVector;
         this.cipherMode = cipherMode;
         this.paddingMode = paddingMode;
@@ -35,6 +40,17 @@ public class Context {
             encryptorDecryptorSymmetric = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
         } else {
             throw new UnsupportedOperationException("Unsupported type algorithm: " + typeAlgorithm);
+        }
+        if (extras != null && extras.length > 0) {
+            if (!(extras[0] instanceof Integer)) {
+                throw new IllegalArgumentException("First extra parameter must be Integer (for deltaForRD)");
+            }
+
+            this.deltaForRD = (Integer) extras[0];
+
+            if (this.deltaForRD < 0) {
+                throw new IllegalArgumentException("Delta for RD mode cannot be negative");
+            }
         }
     }
 
@@ -132,6 +148,87 @@ public class Context {
                         System.arraycopy(message, 0, result, offset, 8);
                     });
                 }
+                break;
+            case OFB:
+                byte[] previousEncryptedBlockOFB = encryptorDecryptorSymmetric.encrypt(initialVector);
+                for(int i = 0; i < amountBlockBy8Bytes; i++) {
+                    int offset = i * 8;
+                    byte[] block = Arrays.copyOfRange(data, offset, offset + 8);
+                    byte[] preResult = xorByteArrays(previousEncryptedBlockOFB, block);
+                    System.arraycopy(preResult, 0, result, offset, 8);
+                    previousEncryptedBlockOFB = encryptorDecryptorSymmetric.encrypt(previousEncryptedBlockOFB);
+                }
+                break;
+            case CFB:
+                if (isEncrypt) {
+                    byte[] previousEncryptedBlockCFB = initialVector;
+                    for(int i = 0; i < amountBlockBy8Bytes; i++) {
+                        int offset = i * 8;
+                        byte[] block = Arrays.copyOfRange(data, offset, offset + 8);
+                        byte[] preResult = xorByteArrays(encryptorDecryptorSymmetric.encrypt(previousEncryptedBlockCFB), block);
+                        System.arraycopy(preResult, 0, result, offset, 8);
+                        previousEncryptedBlockCFB = preResult;
+                    }
+                } else {
+                    byte[] cipherTextsArray = new byte[data.length + initialVector.length];
+                    System.arraycopy(initialVector, 0, cipherTextsArray, 0, initialVector.length);
+                    System.arraycopy(data, 0, cipherTextsArray, initialVector.length, data.length);
+
+                    IntStream.range(0, amountBlockBy8Bytes).parallel().forEach(i -> {
+                        int offset = i * 8;
+                        byte[] blockFirst = Arrays.copyOfRange(cipherTextsArray, offset, offset + 8);
+                        byte[] blockSecond = Arrays.copyOfRange(cipherTextsArray, offset+8, offset + 16);
+                        byte[] message = xorByteArrays(encryptorDecryptorSymmetric.encrypt(blockFirst), blockSecond);
+                        System.arraycopy(message, 0, result, offset, 8);
+                    });
+                }
+                break;
+            case PCBC:
+                byte[] previousEncryptedBlockPCBC = initialVector;
+                for(int i = 0; i < amountBlockBy8Bytes; i++) {
+                    int offset = i * 8;
+                    byte[] block = Arrays.copyOfRange(data, offset, offset + 8);
+                    byte[] xored = xorByteArrays(previousEncryptedBlockPCBC, isEncrypt ? block : encryptorDecryptorSymmetric.decrypt(block)) ;
+                    byte[] preResult = isEncrypt ? encryptorDecryptorSymmetric.encrypt(xored) : xored;
+                    System.arraycopy(preResult, 0, result, offset, 8);
+                    previousEncryptedBlockPCBC = xorByteArrays(preResult, block);
+                }
+                break;
+            case CTR:
+            case RD:
+//                byte[] tmp = new byte[] {(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xFF,(byte)0xF5};
+
+                byte[] iv = new byte[initialVector.length];
+                System.arraycopy(initialVector, 0, iv, 0, initialVector.length);
+                BigInteger initialCounter = new BigInteger(iv);
+
+
+//                log.info("my bigint: {}", initialCounter);
+//                initialCounter = initialCounter.add(BigInteger.ONE);
+//                log.info("my bigint 2: {}", initialCounter);
+//                byte[] bytesOfBigInteger = initialCounter.toByteArray();
+//                log.info("array of BigInteger: {}", bytesToHex(bytesOfBigInteger));
+//                bytesOfBigInteger = Arrays.copyOf(bytesOfBigInteger, 8);
+//                log.info("array of BigInteger: {}", bytesToHex(bytesOfBigInteger));
+
+
+                if (cipherMode == CipherMode.RD && deltaForRD == null) {
+                    throw new IllegalArgumentException("deltaForRD is null!!! need to add for constructor of Context");
+                }
+
+                int delta = cipherMode == CipherMode.CTR ? 1 : deltaForRD;
+                IntStream.range(0, amountBlockBy8Bytes).parallel().forEach(i -> {
+                    int offset = i * 8;
+                    byte[] block = Arrays.copyOfRange(data, offset, offset + 8);
+                    BigInteger currentCounter = initialCounter;
+                    BigInteger iNumber = BigInteger.valueOf(i);
+                    BigInteger deltaBigInteger = BigInteger.valueOf(delta);
+                    currentCounter = currentCounter.add(deltaBigInteger.multiply(iNumber));
+                    byte[] bytesOfCurrentCounter = currentCounter.toByteArray();
+                    bytesOfCurrentCounter = Arrays.copyOf(bytesOfCurrentCounter, 8);
+                    byte[] xored = xorByteArrays(bytesOfCurrentCounter, block);
+                    System.arraycopy(xored, 0, result, offset, 8);
+                });
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported cipher mode: " + cipherMode);
