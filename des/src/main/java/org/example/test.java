@@ -23,8 +23,8 @@ public class test {
 
         String[] testFiles = {
                // "test.txt",
-                "пз_3_менеджмент.pdf",
-                //"test.mp3",
+                //"пз_3_менеджмент.pdf",
+                "Архиватор на Go _ Урок #7_ Алгоритм Шеннона-Фано - теория.mp4",
                 //"test.jpg"
         };
 
@@ -39,7 +39,7 @@ public class test {
                 log.info("\n=== Тестируем файл: " + filename + " ===");
 
 
-                testAlgorithm(TypeAlgorithm.DES, DES_KEY, null, inputFile);
+                //testAlgorithm(TypeAlgorithm.DES, DES_KEY, null, inputFile);
 
 
                 testAlgorithm(TypeAlgorithm.DEAL_128, DES_KEY, DEAL_KEY, inputFile);
@@ -81,10 +81,8 @@ public class test {
         }
 
 
-
-        String algoName = algorithm.name().toLowerCase();
         Path encryptedFile = Paths.get("src/main/resources", "_encrypted.bin");
-        Path decryptedFile = Paths.get("src/main/resources", "_decrypted.pdf");
+        Path decryptedFile = Paths.get("src/main/resources", "_decrypted.mp4");
 
         context.encrypt(inputFile, encryptedFile);
         log.info("Зашифровано в: " + encryptedFile.getFileName());
