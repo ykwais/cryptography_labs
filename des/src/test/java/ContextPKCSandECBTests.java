@@ -15,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ContextPKCSandECBTests {
     private static final byte[] TEST_KEY = {0x01, 0x23, 0x45, 0x67, (byte)0x89, (byte)0xAB, (byte)0xCD, (byte)0xEF};
+    private static final byte[] TEST_KEY_DEAL = {0x01, 0x23, 0x45, 0x67, (byte)0x89, (byte)0xAB, (byte)0xCD, (byte)0xEF, 0x01, 0x23, 0x45, 0x67, (byte)0x89, (byte)0xAB, (byte)0xCD, (byte)0xEF};
+
     private static final byte[] TEST_IV = {0x01, 0x23, 0x45, 0x67, (byte)0x89, (byte)0xAB, (byte)0xCD, (byte)0xEF};
     private static final String TEST_TEXT = "Hello DES Encryption! Тест 1234";
     private static Path tempInputFile;
@@ -44,7 +46,8 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
-                TEST_IV
+                TEST_IV,
+                TEST_KEY_DEAL
         );
 
 
@@ -70,7 +73,8 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
-                TEST_IV
+                TEST_IV,
+                TEST_KEY_DEAL
         );
 
         context.encrypt(emptyFile, tempEncryptedFile);
@@ -84,26 +88,43 @@ class ContextPKCSandECBTests {
 
     @Test
     void testPkcs7Padding() {
+        Context context = new Context(
+                TypeAlgorithm.DES,
+                TEST_KEY,
+                CipherMode.ECB,
+                PaddingMode.PKCS7,
+                TEST_IV,
+                TEST_KEY_DEAL
+        );
 
         byte[] data = "short".getBytes();
-        byte[] padded = Context.addPkcs7Padding(data);
+        byte[] padded = context.addPkcs7Padding(data);
         assertEquals(8, padded.length);
         assertEquals(3, padded[padded.length - 1]);
 
-        byte[] unpadded = Context.removePkcs7Padding(padded);
+        byte[] unpadded = context.removePkcs7Padding(padded);
         assertArrayEquals(data, unpadded);
     }
 
     @Test
     void testFullBlockPadding() {
 
+        Context context = new Context(
+                TypeAlgorithm.DES,
+                TEST_KEY,
+                CipherMode.ECB,
+                PaddingMode.PKCS7,
+                TEST_IV,
+                TEST_KEY_DEAL
+        );
+
         byte[] fullBlock = new byte[8];
         new Random().nextBytes(fullBlock);
 
-        byte[] padded = Context.addPkcs7Padding(fullBlock);
+        byte[] padded = context.addPkcs7Padding(fullBlock);
         assertEquals(16, padded.length);
 
-        byte[] unpadded = Context.removePkcs7Padding(padded);
+        byte[] unpadded = context.removePkcs7Padding(padded);
         assertArrayEquals(fullBlock, unpadded);
     }
 
@@ -114,7 +135,8 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
-                TEST_IV
+                TEST_IV,
+                TEST_KEY_DEAL
         );
 
         byte[] largeData = new byte[4096];
@@ -135,7 +157,8 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
-                TEST_IV
+                TEST_IV,
+                TEST_KEY_DEAL
         );
 
 
@@ -160,7 +183,8 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
-                TEST_IV
+                TEST_IV,
+                TEST_KEY_DEAL
         );
 
         byte[] largeData = new byte[4096];
@@ -182,7 +206,8 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
-                TEST_IV
+                TEST_IV,
+                TEST_KEY_DEAL
         );
 
         context.encrypt(emptyFile, tempEncryptedFile);

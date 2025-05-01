@@ -23,9 +23,10 @@ public class Main {
     public static void main(String[] args) {
 
         byte[] key = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
+        byte[] keyDeal = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
         byte[] initialVector = {(byte)0x01, (byte)0x01, (byte)0x01, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
 
-        Context context = new Context(TypeAlgorithm.DES, key, CipherMode.CTR, PaddingMode.ANSI_X923, initialVector);
+        Context context = new Context(TypeAlgorithm.DES, key, CipherMode.CTR, PaddingMode.ANSI_X923, initialVector, keyDeal, 10);
 
         byte[] fileData = null;
         try {
@@ -37,7 +38,7 @@ public class Main {
         EncryptorDecryptorSymmetric des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
 
 
-        byte[] paddedData = Context.addPkcs7Padding(fileData);
+        byte[] paddedData = context.addPkcs7Padding(fileData);
 
 
         byte[] encryptedData = new byte[paddedData.length];
@@ -57,7 +58,7 @@ public class Main {
         }
 
 
-        byte[] originalData = Context.removePkcs7Padding(decryptedData);
+        byte[] originalData = context.removePkcs7Padding(decryptedData);
 
         log.info("исходный текст в hex: {}", bytesToHex(originalData));
 

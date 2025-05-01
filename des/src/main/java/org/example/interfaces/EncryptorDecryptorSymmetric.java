@@ -6,4 +6,6 @@ public interface EncryptorDecryptorSymmetric {
     byte[] encrypt(byte[] message);
 
     byte[] decrypt(byte[] cipherText);
+
+    int getBlockSize();
 }

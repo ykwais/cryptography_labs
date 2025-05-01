@@ -1,3 +1,6 @@
+import org.example.constants.CipherMode;
+import org.example.constants.PaddingMode;
+import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
 import org.example.des.Des;
 import org.example.interfaces.impl.FiestelFunction;
@@ -14,14 +17,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DesPaddingTest {
 
+    Context context = new Context(TypeAlgorithm.DES, new byte[8], CipherMode.ECB, PaddingMode.ISO_10126, new byte[8], new byte[16], 56);
+
     @Test
     void testEmptyInput() {
         byte[] original = new byte[0];
-        byte[] padded = Context.addPkcs7Padding(original);
+        byte[] padded = context.addPkcs7Padding(original);
         assertEquals(8, padded.length);
         assertArrayEquals(new byte[]{0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08}, padded);
 
-        byte[] unpadded = Context.removePkcs7Padding(padded);
+        byte[] unpadded = context.removePkcs7Padding(padded);
         assertArrayEquals(original, unpadded);
     }
 
@@ -29,23 +34,23 @@ class DesPaddingTest {
     void testPaddingAddAndRemove() {
 
         byte[] data1 = {0x01, 0x02, 0x03};
-        byte[] padded1 = Context.addPkcs7Padding(data1);
+        byte[] padded1 = context.addPkcs7Padding(data1);
         assertEquals(8, padded1.length);
         assertArrayEquals(new byte[]{0x01, 0x02, 0x03, 0x05, 0x05, 0x05, 0x05, 0x05}, padded1);
 
-        byte[] unpadded1 = Context.removePkcs7Padding(padded1);
+        byte[] unpadded1 = context.removePkcs7Padding(padded1);
         assertArrayEquals(data1, unpadded1);
 
 
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
-        byte[] padded2 = Context.addPkcs7Padding(data2);
+        byte[] padded2 = context.addPkcs7Padding(data2);
         assertEquals(16, padded2.length);
         assertArrayEquals(
                 new byte[]{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08},
                 padded2
         );
 
-        byte[] unpadded2 = Context.removePkcs7Padding(padded2);
+        byte[] unpadded2 = context.removePkcs7Padding(padded2);
         assertArrayEquals(data2, unpadded2);
     }
 
@@ -60,7 +65,7 @@ class DesPaddingTest {
         };
 
         byte[] original = "Hello".getBytes();
-        byte[] padded = Context.addPkcs7Padding(original);
+        byte[] padded = context.addPkcs7Padding(original);
 
         Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
         byte[] encrypted = new byte[padded.length];
@@ -80,7 +85,7 @@ class DesPaddingTest {
             System.arraycopy(decryptedBlock, 0, decryptedPadded, i, 8);
         }
 
-        byte[] decrypted = Context.removePkcs7Padding(decryptedPadded);
+        byte[] decrypted = context.removePkcs7Padding(decryptedPadded);
         assertArrayEquals(original, decrypted);
     }
 
@@ -96,7 +101,7 @@ class DesPaddingTest {
         byte[] original = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
 
 
-        byte[] padded = Context.addPkcs7Padding(original);
+        byte[] padded = context.addPkcs7Padding(original);
         assertEquals(16, padded.length);
 
         Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
@@ -120,7 +125,7 @@ class DesPaddingTest {
         }
 
 
-        byte[] decrypted = Context.removePkcs7Padding(decryptedPadded);
+        byte[] decrypted = context.removePkcs7Padding(decryptedPadded);
         assertArrayEquals(original, decrypted);
     }
 
@@ -140,7 +145,7 @@ class DesPaddingTest {
 
 
         byte[] fileData = Files.readAllBytes(inputFile);
-        byte[] paddedData = Context.addPkcs7Padding(fileData);
+        byte[] paddedData = context.addPkcs7Padding(fileData);
 
         Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
         byte[] encryptedData = new byte[paddedData.length];
@@ -159,7 +164,7 @@ class DesPaddingTest {
             System.arraycopy(decryptedBlock, 0, decryptedPadded, i, 8);
         }
 
-        byte[] decryptedData = Context.removePkcs7Padding(decryptedPadded);
+        byte[] decryptedData = context.removePkcs7Padding(decryptedPadded);
         String decryptedContent = new String(decryptedData);
 
         assertNotEquals(testContent, new String(encryptedData), "Шифрование не изменило данные");
@@ -181,14 +186,14 @@ class DesPaddingTest {
         Path emptyFile = Files.createTempFile("des-test-empty", ".txt");
 
         byte[] fileData = Files.readAllBytes(emptyFile);
-        byte[] paddedData = Context.addPkcs7Padding(fileData);
+        byte[] paddedData = context.addPkcs7Padding(fileData);
         assertEquals(8, paddedData.length, "Пустой файл должен быть дополнен до 8 байт");
 
 
         Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
         byte[] encrypted = des.encrypt(paddedData);
         byte[] decryptedPadded = des.decrypt(encrypted);
-        byte[] decrypted = Context.removePkcs7Padding(decryptedPadded);
+        byte[] decrypted = context.removePkcs7Padding(decryptedPadded);
 
         assertEquals(0, decrypted.length, "Пустой файл должен остаться пустым после дешифрования");
 
@@ -199,11 +204,11 @@ class DesPaddingTest {
     @Test
     void testZerosPadding_PartialBlock() {
         byte[] data = {0x01, 0x02, 0x03};
-        byte[] padded = Context.addZerosPadding(data);
+        byte[] padded = context.addZerosPadding(data);
         assertEquals(8, padded.length);
         assertArrayEquals(new byte[]{0x01, 0x02, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00}, padded);
 
-        byte[] unpadded = Context.removeZerosPadding(padded);
+        byte[] unpadded = context.removeZerosPadding(padded);
         assertArrayEquals(data, unpadded);
     }
 
@@ -212,15 +217,15 @@ class DesPaddingTest {
         byte[] trickyData1 = {0x01, 0x02, 0x00, 0x00};
         byte[] trickyData2 = {0x01, 0x02};
 
-        byte[] padded1 = Context.addZerosPadding(trickyData1);
-        byte[] padded2 = Context.addZerosPadding(trickyData2);
+        byte[] padded1 = context.addZerosPadding(trickyData1);
+        byte[] padded2 = context.addZerosPadding(trickyData2);
         assertArrayEquals(
                 new byte[]{0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
                 padded1
         );
         assertArrayEquals(padded1, padded2);
 
-        byte[] unpadded = Context.removeZerosPadding(padded1);
+        byte[] unpadded = context.removeZerosPadding(padded1);
         assertArrayEquals(new byte[]{0x01, 0x02}, unpadded);
     }
 
@@ -228,9 +233,9 @@ class DesPaddingTest {
     void testZerosPadding_RealZerosInData() {
 
         byte[] dataWithMiddleZero = {0x01, 0x00, 0x02, 0x03};
-        byte[] padded = Context.addZerosPadding(dataWithMiddleZero);
+        byte[] padded = context.addZerosPadding(dataWithMiddleZero);
 
-        byte[] unpadded = Context.removeZerosPadding(padded);
+        byte[] unpadded = context.removeZerosPadding(padded);
         assertArrayEquals(dataWithMiddleZero, unpadded);
     }
 
@@ -238,10 +243,10 @@ class DesPaddingTest {
     @Test
     void testZerosPadding_DataEndsWithZero() {
         byte[] data = {0x01, 0x02, 0x00};
-        byte[] padded = Context.addZerosPadding(data);
+        byte[] padded = context.addZerosPadding(data);
 
 
-        byte[] unpadded = Context.removeZerosPadding(padded);
+        byte[] unpadded = context.removeZerosPadding(padded);
 
         assertNotEquals(data.length, unpadded.length);
         assertArrayEquals(new byte[]{0x01, 0x02}, unpadded);
@@ -252,12 +257,12 @@ class DesPaddingTest {
         byte[] originalData1 = {0x01, 0x02, 0x00};
         byte[] originalData2 = {0x01, 0x02};
 
-        byte[] padded1 = Context.addZerosPadding(originalData1);
-        byte[] padded2 = Context.addZerosPadding(originalData2);
+        byte[] padded1 = context.addZerosPadding(originalData1);
+        byte[] padded2 = context.addZerosPadding(originalData2);
 
 
-        byte[] unpadded1 = Context.removeZerosPadding(padded1);
-        byte[] unpadded2 = Context.removeZerosPadding(padded2);
+        byte[] unpadded1 = context.removeZerosPadding(padded1);
+        byte[] unpadded2 = context.removeZerosPadding(padded2);
 
         assertArrayEquals(originalData2, unpadded2);
         assertArrayEquals(originalData2, unpadded1);
@@ -267,7 +272,7 @@ class DesPaddingTest {
     @Test
     void testAddPadding_EmptyData() {
         byte[] data = new byte[0];
-        byte[] padded = Context.addIso10126Padding(data);
+        byte[] padded = context.addIso10126Padding(data);
 
         assertEquals(8, padded.length);
         assertEquals(padded[padded.length - 1], (byte) 8);
@@ -276,7 +281,7 @@ class DesPaddingTest {
     @Test
     void testAddPadding_PartialBlock() {
         byte[] data = {0x01, 0x02, 0x03};
-        byte[] padded = Context.addIso10126Padding(data);
+        byte[] padded = context.addIso10126Padding(data);
 
         assertEquals(8, padded.length);
         assertEquals(padded[padded.length - 1], (byte) 5);
@@ -288,7 +293,7 @@ class DesPaddingTest {
         byte[] fullBlock = new byte[8];
         Arrays.fill(fullBlock, (byte) 1);
 
-        byte[] padded = Context.addIso10126Padding(fullBlock);
+        byte[] padded = context.addIso10126Padding(fullBlock);
 
         assertEquals(16, padded.length);
         assertEquals(padded[padded.length - 1], (byte) 8);
@@ -300,7 +305,7 @@ class DesPaddingTest {
         Arrays.fill(padded, (byte) 0xAA);
         padded[7] = 3;
 
-        byte[] unpadded = Context.removeIso10126Padding(padded);
+        byte[] unpadded = context.removeIso10126Padding(padded);
 
         assertEquals(5, unpadded.length);
     }
@@ -308,7 +313,7 @@ class DesPaddingTest {
     @Test
     void testRemovePadding_NoPadding() {
         byte[] data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x00};
-        byte[] result = Context.removeIso10126Padding(data);
+        byte[] result = context.removeIso10126Padding(data);
 
         assertArrayEquals(data, result);
     }
@@ -319,7 +324,7 @@ class DesPaddingTest {
         invalidPadding[7] = 9;
 
         assertThrows(IllegalArgumentException.class, () -> {
-            Context.removeIso10126Padding(invalidPadding);
+            context.removeIso10126Padding(invalidPadding);
         });
     }
 
@@ -329,8 +334,8 @@ class DesPaddingTest {
             byte[] original = new byte[i];
             new SecureRandom().nextBytes(original);
 
-            byte[] padded = Context.addIso10126Padding(original);
-            byte[] unpadded = Context.removeIso10126Padding(padded);
+            byte[] padded = context.addIso10126Padding(original);
+            byte[] unpadded = context.removeIso10126Padding(padded);
 
             assertArrayEquals(original, unpadded,
                     "Failed for length " + i + ": " + Arrays.toString(original));
@@ -343,7 +348,7 @@ class DesPaddingTest {
     @Test
     void addAnsiX923Padding_ShouldAddFullBlockPadding_WhenInputEmpty() {
         byte[] data = new byte[0];
-        byte[] padded = Context.addAnsiX923Padding(data);
+        byte[] padded = context.addAnsiX923Padding(data);
 
         assertArrayEquals(
                 new byte[]{0, 0, 0, 0, 0, 0, 0, 8},
@@ -354,7 +359,7 @@ class DesPaddingTest {
     @Test
     void addAnsiX923Padding_ShouldAddPartialPadding_WhenInputNotFullBlock() {
         byte[] data = {0x01, 0x02};
-        byte[] padded = Context.addAnsiX923Padding(data);
+        byte[] padded = context.addAnsiX923Padding(data);
 
         assertArrayEquals(
                 new byte[]{0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 6},
@@ -367,7 +372,7 @@ class DesPaddingTest {
         byte[] fullBlock = new byte[8];
         Arrays.fill(fullBlock, (byte) 0xFF);
 
-        byte[] padded = Context.addAnsiX923Padding(fullBlock);
+        byte[] padded = context.addAnsiX923Padding(fullBlock);
 
         assertEquals(16, padded.length);
         assertEquals(8, padded[15]);
@@ -377,7 +382,7 @@ class DesPaddingTest {
     @Test
     void removeAnsiX923Padding_ShouldRemovePadding_WhenPaddingPresent() {
         byte[] padded = {0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06};
-        byte[] unpadded = Context.removeAnsiX923Padding(padded);
+        byte[] unpadded = context.removeAnsiX923Padding(padded);
 
         assertArrayEquals(new byte[]{0x01, 0x02}, unpadded);
     }
@@ -385,7 +390,7 @@ class DesPaddingTest {
     @Test
     void removeAnsiX923Padding_ShouldReturnOriginal_WhenNoPadding() {
         byte[] data = {0x01, 0x02, 0x03, 0x00};
-        byte[] result = Context.removeAnsiX923Padding(data);
+        byte[] result = context.removeAnsiX923Padding(data);
 
         assertArrayEquals(data, result);
     }
@@ -395,7 +400,7 @@ class DesPaddingTest {
         byte[] invalid = {0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09}; // >8
 
         assertThrows(IllegalArgumentException.class, () -> {
-            Context.removeAnsiX923Padding(invalid);
+            context.removeAnsiX923Padding(invalid);
         });
     }
 
@@ -407,8 +412,8 @@ class DesPaddingTest {
             byte[] original = new byte[size];
             random.nextBytes(original);
 
-            byte[] padded = Context.addAnsiX923Padding(original);
-            byte[] unpadded = Context.removeAnsiX923Padding(padded);
+            byte[] padded = context.addAnsiX923Padding(original);
+            byte[] unpadded = context.removeAnsiX923Padding(padded);
 
             assertArrayEquals(original, unpadded,
                     "Failed for size: " + size);

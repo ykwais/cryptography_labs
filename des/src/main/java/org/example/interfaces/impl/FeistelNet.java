@@ -15,13 +15,14 @@ import org.example.utils.PermutationBits;
 public class FeistelNet implements EncryptorDecryptorSymmetric {
 
     private byte[] key;
-    private final KeyExpansion keyExpansion;
-    private final EncryptionTransformation transformation;
+    protected final KeyExpansion keyExpansion;
+    protected final EncryptionTransformation transformation;
 
     public FeistelNet(KeyExpansion keyExpansion, EncryptionTransformation transformation) {
         this.keyExpansion = keyExpansion;
         this.transformation = transformation;
     }
+
 
     @Override
     public void setKey(byte[] key) {
@@ -36,6 +37,11 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
     @Override
     public byte[] decrypt(byte[] oneBlock) {
         return encryptDecryptInner(oneBlock, key, false);
+    }
+
+    @Override
+    public int getBlockSize() {
+        return 0;
     }
 
     public byte[] encryptDecryptInner(byte[] oneBlock, byte[] key, boolean isEncrypt) {
@@ -67,12 +73,12 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
         return PermutationBits.permute(preCipherBlock, Tables.IP_INV, true, true);
     }
 
-    private Pair<byte[], byte[]> rounds16OfFiestelNet(byte[] l0, byte[] r0, byte[][] roundKeys, boolean isEncrypt) {
+    protected Pair<byte[], byte[]> rounds16OfFiestelNet(byte[] l0, byte[] r0, byte[][] roundKeys, boolean isEncrypt) {
 
         byte[] l = l0;
         byte[] r = r0;
 
-        for (int i = 0; i < 16; ++i) {
+        for (int i = 0; i < roundKeys.length; ++i) {
 
 
 
@@ -93,7 +99,7 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
         return new Pair<>(l,r);
     }
 
-    private byte[] xorByteArrays(byte[] a, byte[] b) {
+    protected byte[] xorByteArrays(byte[] a, byte[] b) {
         if (a.length != b.length) {
             throw new IllegalArgumentException("Arrays have different lengths");
         }

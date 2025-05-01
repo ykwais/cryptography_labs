@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 class ContextAllPaddingTest {
     private static final byte[] TEST_KEY = new byte[8];
     private static final byte[] TEST_IV = new byte[8];
+    private static final byte[] TEST_KEY_DEAL = new byte[16];
     private final SecureRandom random = new SecureRandom();
 
     @TempDir
@@ -37,7 +38,8 @@ class ContextAllPaddingTest {
                 TEST_KEY,
                 CipherMode.ECB,
                 mode,
-                TEST_IV
+                TEST_IV,
+                TEST_KEY_DEAL
         );
 
         Path inputFile = tempDir.resolve("input.bin");
@@ -80,7 +82,8 @@ class ContextAllPaddingTest {
                 TEST_KEY,
                 CipherMode.ECB,
                 PaddingMode.ZEROS,
-                TEST_IV
+                TEST_IV,
+                TEST_KEY_DEAL
         );
 
         Path inputFile = tempDir.resolve("zeros.bin");

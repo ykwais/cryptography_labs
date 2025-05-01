@@ -14,5 +14,10 @@ public class Des extends FeistelNet {
         this.setKey(key);
     }
 
+    @Override
+    public int getBlockSize() {
+        return 8;
+    }
+
 
 }
