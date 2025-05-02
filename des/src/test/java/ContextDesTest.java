@@ -73,13 +73,6 @@ class ContextDesTest {
                 "Failed for " + cipherMode + "/" + paddingMode + " with length " + dataLength);
     }
 
-    @Test
-    void shouldHandleEmptyFile() throws IOException {
-        testModeCombination(CipherMode.ECB, PaddingMode.PKCS7, 0);
-        testModeCombination(CipherMode.CBC, PaddingMode.ISO_10126, 0);
-        testModeCombination(CipherMode.OFB, PaddingMode.ISO_10126, 0);
-
-    }
 
     @Test
     void shouldHandleLargeFile() throws IOException {

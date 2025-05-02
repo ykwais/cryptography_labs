@@ -1,13 +1,12 @@
 package org.example.deal;
 
 import org.example.constants.BitsInKeysOfDeal;
-import org.example.constants.Tables;
 import org.example.des.Des;
 import org.example.interfaces.impl.FeistelNet;
 import org.example.interfaces.impl.FiestelFunction;
 import org.example.interfaces.impl.KeyExpansionImpl;
 import org.example.utils.Pair;
-import org.example.utils.PermutationBits;
+
 
 public class Deal extends FeistelNet {
 

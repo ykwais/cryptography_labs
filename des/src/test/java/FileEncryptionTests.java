@@ -134,7 +134,7 @@ public class FileEncryptionTests {
     @ParameterizedTest
     @EnumSource(PaddingMode.class)
     void testDeal256WithDifferentPadding(PaddingMode padding) throws IOException {
-        Path testFile = Paths.get("src/test/resources/М.Л.-Краснов-А.И.-Киселёв-Г.И.-Макаренко-Функции-комплексного-переменного.-Задачи-и-примеры-с-подробными-решениями..pdf");
+        Path testFile = Paths.get("src/main/resources/пз_3_менеджмент.pdf");
         assumeTrue(Files.exists(testFile));
 
         Context context = new Context(
