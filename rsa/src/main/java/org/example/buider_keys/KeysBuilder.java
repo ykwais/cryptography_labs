@@ -3,6 +3,7 @@ package org.example.buider_keys;
 import javafx.util.Pair;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.example.models.CloseKey;
 import org.example.models.OpenKey;
 import org.example.rsa.Rsa;
@@ -18,6 +19,7 @@ import static org.example.stateless.Math.*;
 
 @Setter
 @Getter
+@Slf4j
 public class KeysBuilder {
     private final SimplifilityInterface test;
     private final double chance;
@@ -64,6 +66,12 @@ public class KeysBuilder {
 //        BigInteger tmp2 = resultExpandedEuclid[2].mod(phi).add(phi).mod(phi);
 
         BigInteger d = resultExpandedEuclid[1];
+        log.info("d: {}", d);
+        log.info("phi : {}", phi);
+        if (d.compareTo(BigInteger.ZERO) < 0) {
+            d = d.add(phi);
+        }
+        log.info("d: {}", d);
 
         OpenKey open = new OpenKey(publicExp, n);
         CloseKey close = new CloseKey(d, n);
