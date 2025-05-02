@@ -93,6 +93,21 @@ public interface Math {
         return result;
     }
 
+    static BigInteger powBIGs(BigInteger a, BigInteger n) {
+
+        BigInteger result = BigInteger.ONE;
+
+        while (n.compareTo(BigInteger.ZERO) > 0) {
+            if (n.testBit(0)) {
+                result = result.multiply(a);
+            }
+            a = a.multiply(a);
+            n = n.shiftRight(1);
+        }
+
+        return result;
+    }
+
 
     static int legendreQaudraticDependency(BigInteger a, BigInteger p) {
         if (p.compareTo(BigInteger.valueOf(3)) < 0 || p.mod(BigInteger.TWO).equals(BigInteger.ZERO)) throw new IllegalArgumentException("p is not even or < 3");
