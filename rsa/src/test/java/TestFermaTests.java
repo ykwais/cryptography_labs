@@ -33,7 +33,7 @@ class TestFermaTests {
     @Test
     void testKnownPrimes() {
         assertTrue(testFerma.isSimple(BigInteger.valueOf(17), 0.99));
-        assertTrue(testFerma.isSimple(BigInteger.valueOf(7919), 0.99)); // 1000-е простое
+        assertTrue(testFerma.isSimple(BigInteger.valueOf(7919), 0.99));
         assertTrue(testFerma.isSimple(BigInteger.valueOf(1000003), 0.99));
     }
 
@@ -41,13 +41,13 @@ class TestFermaTests {
     @Test
     void testKnownComposites() {
         assertFalse(testFerma.isSimple(BigInteger.valueOf(15), 0.99));
-        assertFalse(testFerma.isSimple(BigInteger.valueOf(1000001), 0.99)); // 1007*993
+        assertFalse(testFerma.isSimple(BigInteger.valueOf(1000001), 0.99));
     }
 
 
     @Test
     void testCarmichaelNumbers() {
-        assertFalse(testFerma.isSimple(BigInteger.valueOf(561), 0.99));//Кармайкл
+        assertFalse(testFerma.isSimple(BigInteger.valueOf(561), 0.99));
         assertFalse(testFerma.isSimple(BigInteger.valueOf(1105), 0.99));
     }
 

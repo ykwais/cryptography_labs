@@ -34,7 +34,7 @@ class GcdExpandedTest {
                 new BigInteger[]{new BigInteger("1"), new BigInteger("-2"), new BigInteger("7")},
                 result
         );
-        // 17*(-2) + 5*7 = 1
+
         assertEquals(
                 BigInteger.ONE,
                 new BigInteger("17").multiply(result[1])

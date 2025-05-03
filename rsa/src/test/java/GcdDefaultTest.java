@@ -32,8 +32,8 @@ class GcdDefaultTest {
 
     @Test
     void testGcdWithLargePrimes() {
-        BigInteger prime1 = new BigInteger("32416190071"); // Большое простое
-        BigInteger prime2 = new BigInteger("2305843009213693951"); // Простое Мерсенна
+        BigInteger prime1 = new BigInteger("32416190071");
+        BigInteger prime2 = new BigInteger("2305843009213693951");
         assertEquals(BigInteger.ONE, gcd(prime1, prime2));
     }
 
