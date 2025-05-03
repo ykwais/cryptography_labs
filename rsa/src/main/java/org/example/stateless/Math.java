@@ -26,7 +26,6 @@ public interface Math {
 
 
     static int legendre(BigInteger a, BigInteger p) {
-        //p должен быть обязательно простым!!! //TODO добавить тест на простоту если получится
         if (p.compareTo(BigInteger.valueOf(3)) < 0 || p.mod(BigInteger.TWO).equals(BigInteger.ZERO)) throw new IllegalArgumentException("invalid n for Legendre symbol");
 
         BigInteger aByMod = a.mod(p);

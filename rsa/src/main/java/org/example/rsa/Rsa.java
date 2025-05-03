@@ -1,10 +1,10 @@
 package org.example.rsa;
 
 import javafx.util.Pair;
+import lombok.Getter;
 import org.example.buider_keys.KeysBuilder;
 import org.example.models.CloseKey;
 import org.example.models.OpenKey;
-import org.example.simplyfility.SimplifilityInterface;
 
 import java.math.BigInteger;
 
@@ -18,24 +18,27 @@ public class Rsa {
         MILLER_RABIN
     }
 
-    private final TestType testType;
-    private final int bitLength;
-    private final double chance;
     private final KeysBuilder keysBuilder;
+    @Getter
     private Pair<OpenKey, CloseKey> pairKeys;
+    private int maxBitLength;
 
 
     public Rsa(TestType testType, int bitLength, double chance) {
-        this.testType = testType;
-        this.bitLength = bitLength;
-        this.chance = chance;
         keysBuilder = new KeysBuilder(testType, bitLength, chance);
         pairKeys = keysBuilder.getKeys();
+        maxBitLength = keysBuilder.getBitLengthN();
     }
 
-
+    public void updateKeys() {
+        pairKeys = keysBuilder.getKeys();
+        maxBitLength = keysBuilder.getBitLengthN();
+    }
 
     public BigInteger encrypt(BigInteger message) {
+        if (message.bitLength() > maxBitLength) {
+            throw new IllegalArgumentException("Message too long");
+        }
         OpenKey open = pairKeys.getKey();
         return powMod(message, open.e() ,open.n());
     }

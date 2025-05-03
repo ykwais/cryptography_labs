@@ -17,17 +17,18 @@ import java.security.SecureRandom;
 
 import static org.example.stateless.Math.*;
 
-@Setter
-@Getter
 @Slf4j
 public class KeysBuilder {
     private final SimplifilityInterface test;
     private final double chance;
     private final int bitLength;
+    private int maxBitLength;
 
     private final SecureRandom random = new SecureRandom();
 
-    public BigInteger publicExp =  BigInteger.valueOf(65537);
+    @Getter
+    @Setter
+    BigInteger publicExp =  BigInteger.valueOf(65537);
 
     public KeysBuilder(Rsa.TestType type, int bitLength, double chance) {
         this.bitLength = bitLength;
@@ -37,44 +38,55 @@ public class KeysBuilder {
                     case FERMAT -> new TestFerma();
                     case SOLOVAY_STRASSEN -> new SolovayStrassenTest();
                     case MILLER_RABIN -> new MillerRabinTest();
-                    default -> throw new IllegalStateException("Unexpected value: " + type);
                 };
     }
 
     public Pair<OpenKey, CloseKey> getKeys(){
 
-        Pair<BigInteger, BigInteger> pAndQ = generatePQ();
+        BigInteger p;
+        BigInteger q;
+        BigInteger d;
+        BigInteger n;
+        BigInteger phi;
+        CloseKey close;
+        OpenKey open;
 
-        BigInteger p = pAndQ.getKey();
-        BigInteger q = pAndQ.getValue();
+        do {
+            Pair<BigInteger, BigInteger> pAndQ = generatePQ();
 
-        BigInteger n = p.multiply(q);
+            p = pAndQ.getKey();
+            q = pAndQ.getValue();
 
-        BigInteger phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
+            n = p.multiply(q);
 
-        if (!gcd(publicExp, phi).equals(BigInteger.ONE)) {
-            throw new IllegalStateException("gcd(phi, e) != 1");
-        }
+            log.info("bit length of N: {}", n.bitLength());
 
-        BigInteger[] resultExpandedEuclid = gcdExpansion(publicExp, phi);
+            phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
 
-        if (!resultExpandedEuclid[0].equals(BigInteger.ONE)) {
-            throw new IllegalStateException("gcdExpansion(publicExp, phi) != 1");
-        }
+            if (!gcd(publicExp, phi).equals(BigInteger.ONE)) {
+                throw new IllegalStateException("gcd(phi, e) != 1");
+            }
 
-//        BigInteger tmp1 = resultExpandedEuclid[1].mod(phi).add(phi).mod(phi);
-//        BigInteger tmp2 = resultExpandedEuclid[2].mod(phi).add(phi).mod(phi);
+            BigInteger[] resultExpandedEuclid = gcdExpansion(publicExp, phi);
 
-        BigInteger d = resultExpandedEuclid[1];
-        log.info("d: {}", d);
-        log.info("phi : {}", phi);
-        if (d.compareTo(BigInteger.ZERO) < 0) {
-            d = d.add(phi);
-        }
-        log.info("d: {}", d);
+            if (!resultExpandedEuclid[0].equals(BigInteger.ONE)) {
+                throw new IllegalStateException("gcdExpansion(publicExp, phi) != 1");
+            }
 
-        OpenKey open = new OpenKey(publicExp, n);
-        CloseKey close = new CloseKey(d, n);
+            d = resultExpandedEuclid[1];
+            log.info("d: {}", d);
+            log.info("phi : {}", phi);
+            if (d.compareTo(BigInteger.ZERO) < 0) {
+                d = d.add(phi);
+            }
+            log.info("d: {}", d);
+
+            open = new OpenKey(publicExp, n);
+            close = new CloseKey(d, n);
+
+        } while (powBIGs(d, BigInteger.valueOf(4)).multiply(BigInteger.valueOf(81)).compareTo(n) < 0); // против Винера
+
+        maxBitLength = n.bitLength();
 
         return new Pair<>(open, close);
     }
@@ -82,23 +94,25 @@ public class KeysBuilder {
     private BigInteger getPorQ(boolean isP) {
         BigInteger res;
         do {
-            res = isP ? new BigInteger(bitLength, random).setBit(0).setBit(bitLength-1).clearBit(bitLength-2) : new BigInteger(bitLength, random).setBit(0).setBit(bitLength-1).setBit(bitLength-2);
+            BigInteger bigInteger = new BigInteger(bitLength, random).setBit(0).setBit(bitLength - 1);
+            res = isP ? bigInteger.clearBit(bitLength-2) : bigInteger.setBit(bitLength-2);
         } while (!test.isSimple(res, chance));
         return res;
     }
 
     private Pair<BigInteger, BigInteger> generatePQ() {
         BigInteger p = getPorQ(true);
-        BigInteger q,n;
+        BigInteger q;
+        BigInteger n;
         do {
             q = getPorQ(false);
             n = p.multiply(q);
-        } while (p.subtract(q).abs().compareTo(powBIGs(BigInteger.TWO, BigInteger.valueOf( (n.bitLength()/2 - 100) ))) < 0);
+        } while (p.subtract(q).abs().compareTo(powBIGs(BigInteger.TWO, BigInteger.valueOf( (n.bitLength()/2 - 100) ))) < 0);//против Ферма
         return new Pair<>(p, q);
     }
 
-
-
-
+    public int getBitLengthN() {
+        return maxBitLength;
+    }
 
 }

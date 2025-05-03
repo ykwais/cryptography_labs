@@ -5,7 +5,7 @@ import java.math.BigInteger;
 import static org.example.stateless.Math.gcdExpansion;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GcdExpandedTest {
+class GcdExpandedTest {
     @Test
     void testBasicCase() {
         BigInteger[] result = gcdExpansion(

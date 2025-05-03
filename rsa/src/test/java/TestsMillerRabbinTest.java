@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class TestsMillerRabbinTest {
+class TestsMillerRabbinTest {
     private final MillerRabinTest test = new MillerRabinTest();
 
 

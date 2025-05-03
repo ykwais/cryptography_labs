@@ -1,6 +1,5 @@
 package org.example.simplyfility;
 
-import javafx.beans.property.adapter.JavaBeanIntegerPropertyBuilder;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
