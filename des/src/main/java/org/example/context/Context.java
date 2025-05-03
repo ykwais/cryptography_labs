@@ -19,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.IntStream;
 
 
@@ -35,12 +34,14 @@ public class Context {
     private final int blockSize;
 
 
+    // убрать параметры из конструктора, keyDeal перенести в extras
+    // нужно передавать не TypeAlgorithm а реализацию симметричного шифрования
     public Context(TypeAlgorithm typeAlgorithm, byte[] key, CipherMode cipherMode, PaddingMode paddingMode, byte[] initializationVector, byte[] keyDeal, Object... extras) {
         this.initialVector = initializationVector;
         this.cipherMode = cipherMode;
         this.paddingMode = paddingMode;
 
-        switch (typeAlgorithm) {
+        switch (typeAlgorithm) { // избавиться от этого
             case DES -> encryptorDecryptorSymmetric = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
             case DEAL_128 -> encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_128, key, keyDeal);
             case DEAL_192 -> encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_192, key, keyDeal);

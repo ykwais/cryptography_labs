@@ -58,7 +58,6 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
         System.arraycopy(l0r0, 0, l0, 0, 4);
         System.arraycopy(l0r0, 4, r0, 0, 4);
 
-
         Pair<byte[], byte[]> l16r16 = rounds16OfFiestelNet(l0, r0, roundKeys, isEncrypt);
 
         byte[] l16 = l16r16.second();//переворот здесь!!!!!!!!!!!
