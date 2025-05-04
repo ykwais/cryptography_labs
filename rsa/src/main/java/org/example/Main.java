@@ -9,7 +9,7 @@ import java.math.BigInteger;
 @Slf4j
 public class Main {
     public static void main(String[] args) {
-        Rsa rsa = new Rsa(Rsa.TestType.MILLER_RABIN, 48, 0.999999);//48
+        Rsa rsa = new Rsa(Rsa.TestType.MILLER_RABIN, 1024, 0.999999);//48
         BigInteger message = new BigInteger("21474836485856767456464564765");
         log.info("bit length of message : {}", message.bitLength());
         BigInteger cipher = rsa.encrypt(message);
