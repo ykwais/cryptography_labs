@@ -65,10 +65,6 @@ public class KeysBuilder {
 
             BigInteger[] resultExpandedEuclid = gcdExpansion(publicExp, phi);
 
-            if (!resultExpandedEuclid[0].equals(BigInteger.ONE)) { // на всякий случай
-                throw new IllegalStateException("gcdExpansion(publicExp, phi) != 1");
-            }
-
             d = resultExpandedEuclid[1];
             log.info("d: {}", d);
             log.info("phi : {}", phi);
@@ -80,7 +76,7 @@ public class KeysBuilder {
             open = new OpenKey(publicExp, n);
             close = new CloseKey(d, n);
 
-        } while (powBIGs(d, BigInteger.valueOf(4)).multiply(BigInteger.valueOf(81)).compareTo(n) < 0 && !gcd(publicExp, phi).equals(BigInteger.ONE)); // против Винера
+        } while (powBIGs(d, BigInteger.valueOf(4)).multiply(BigInteger.valueOf(81)).compareTo(n) < 0 || !gcd(publicExp, phi).equals(BigInteger.ONE)); // против Винера
 
         maxBitLength = n.bitLength();
 

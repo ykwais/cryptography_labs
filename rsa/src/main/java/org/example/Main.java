@@ -10,7 +10,7 @@ import java.math.BigInteger;
 public class Main {
     public static void main(String[] args) {
         Rsa rsa = new Rsa(Rsa.TestType.MILLER_RABIN, 1024, 0.999999);//48
-        BigInteger message = new BigInteger("21474836485856767456464564765");
+        BigInteger message = new BigInteger("21474836485856767456464564765111111");
         log.info("bit length of message : {}", message.bitLength());
         BigInteger cipher = rsa.encrypt(message);
         BigInteger decrypted = rsa.decrypt(cipher);
