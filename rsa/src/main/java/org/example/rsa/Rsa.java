@@ -25,6 +25,7 @@ public class Rsa {
 
 
     public Rsa(TestType testType, int bitLength, double chance) {
+        if (bitLength < 128) throw new IllegalArgumentException("bitLength must be at least 128");
         keysBuilder = new KeysBuilder(testType, bitLength, chance);
         pairKeys = keysBuilder.getKeys();
         maxBitLength = keysBuilder.getBitLengthN();
