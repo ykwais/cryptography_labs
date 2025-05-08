@@ -100,8 +100,8 @@ class ContextDeal {
                 cipherMode,
                 paddingMode,
                 TEST_IV,
-                TEST_KEY_DEAL_128,
-                TEST_DELTA
+                TEST_DELTA,
+                TEST_KEY_DEAL_128
         );
 
         Path inputFile = tempDir.resolve("input_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");
@@ -130,8 +130,9 @@ class ContextDeal {
                 cipherMode,
                 paddingMode,
                 TEST_IV,
-                TEST_KEY_DEAL_192,
-                TEST_DELTA
+                TEST_DELTA,
+                TEST_KEY_DEAL_192
+
         );
 
         Path inputFile = tempDir.resolve("input_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");
@@ -161,8 +162,9 @@ class ContextDeal {
                 cipherMode,
                 paddingMode,
                 TEST_IV,
-                TEST_KEY_DEAL_256,
-                TEST_DELTA
+                TEST_DELTA,
+                TEST_KEY_DEAL_256
+
         );
 
         Path inputFile = tempDir.resolve("input_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");

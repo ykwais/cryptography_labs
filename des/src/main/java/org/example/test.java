@@ -23,8 +23,8 @@ public class test {
 
         String[] testFiles = {
                // "test.txt",
-                //"пз_3_менеджмент.pdf",
-                "Архиватор на Go _ Урок #7_ Алгоритм Шеннона-Фано - теория.mp4",
+                "пз_3_менеджмент.pdf",
+                //"Архиватор на Go _ Урок #7_ Алгоритм Шеннона-Фано - теория.mp4",
                 //"test.jpg"
         };
 
@@ -65,8 +65,8 @@ public class test {
                     CipherMode.CBC,
                     PaddingMode.PKCS7,
                     IV_des,
-                    dealKey,
                     DELTA
+
             );
         } else {
             context = new Context(
@@ -75,8 +75,8 @@ public class test {
                     CipherMode.CBC,
                     PaddingMode.PKCS7,
                     IV_deal,
-                    dealKey,
-                    DELTA
+                    DELTA,
+                    dealKey
             );
         }
 

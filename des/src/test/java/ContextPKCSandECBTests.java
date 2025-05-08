@@ -46,8 +46,7 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
-                TEST_IV,
-                TEST_KEY_DEAL
+                TEST_IV
         );
 
 
@@ -73,8 +72,7 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
-                TEST_IV,
-                TEST_KEY_DEAL
+                TEST_IV
         );
 
         context.encrypt(emptyFile, tempEncryptedFile);
@@ -93,8 +91,7 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
-                TEST_IV,
-                TEST_KEY_DEAL
+                TEST_IV
         );
 
         byte[] data = "short".getBytes();
@@ -114,8 +111,7 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
-                TEST_IV,
-                TEST_KEY_DEAL
+                TEST_IV
         );
 
         byte[] fullBlock = new byte[8];
@@ -135,8 +131,7 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
-                TEST_IV,
-                TEST_KEY_DEAL
+                TEST_IV
         );
 
         byte[] largeData = new byte[4096];
@@ -157,8 +152,7 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
-                TEST_IV,
-                TEST_KEY_DEAL
+                TEST_IV
         );
 
 
@@ -183,8 +177,7 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
-                TEST_IV,
-                TEST_KEY_DEAL
+                TEST_IV
         );
 
         byte[] largeData = new byte[4096];
@@ -206,8 +199,7 @@ class ContextPKCSandECBTests {
                 TEST_KEY,
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
-                TEST_IV,
-                TEST_KEY_DEAL
+                TEST_IV
         );
 
         context.encrypt(emptyFile, tempEncryptedFile);

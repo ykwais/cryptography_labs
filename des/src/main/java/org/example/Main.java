@@ -7,8 +7,6 @@ import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
 import org.example.interfaces.EncryptorDecryptorSymmetric;
 import org.example.des.Des;
-import org.example.interfaces.impl.FiestelFunction;
-import org.example.interfaces.impl.KeyExpansionImpl;
 
 
 import java.io.IOException;
@@ -26,7 +24,7 @@ public class Main {
         byte[] keyDeal = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
         byte[] initialVector = {(byte)0x01, (byte)0x01, (byte)0x01, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
 
-        Context context = new Context(TypeAlgorithm.DES, key, CipherMode.CTR, PaddingMode.ANSI_X923, initialVector, keyDeal, 10);
+        Context context = new Context(TypeAlgorithm.DES, key, CipherMode.CTR, PaddingMode.ANSI_X923, initialVector, 10, keyDeal);
 
         byte[] fileData = null;
         try {
@@ -35,7 +33,7 @@ public class Main {
             log.error(e.getMessage(), e);
         }
 
-        EncryptorDecryptorSymmetric des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        EncryptorDecryptorSymmetric des = new Des(key);
 
 
         byte[] paddedData = context.addPkcs7Padding(fileData);
@@ -66,6 +64,9 @@ public class Main {
 
         byte[] res = context.encryptDecryptInner(fileData, true);
         log.info("res: {}", bytesToHex(res));
+
+        byte[] dec = context.encryptDecryptInner(res, false);
+        log.info("dec: {}", bytesToHex(dec));
 
     }
 

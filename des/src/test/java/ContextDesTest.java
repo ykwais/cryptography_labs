@@ -16,8 +16,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 class ContextDesTest {
     private static final byte[] TEST_KEY = new byte[8];
     private static final byte[] TEST_IV = new byte[8];
-    private static final byte[] TEST_KEY_DEAL = new byte[16];
-    private static final int TEST_DELTA = 53;
+    private static final Integer DELTA = 53;
     private final SecureRandom random = new SecureRandom();
 
     @TempDir
@@ -56,8 +55,7 @@ class ContextDesTest {
                 cipherMode,
                 paddingMode,
                 TEST_IV,
-                TEST_KEY_DEAL,
-                TEST_DELTA
+                DELTA
         );
 
         Path inputFile = tempDir.resolve("input_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");

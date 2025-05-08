@@ -9,8 +9,6 @@ import org.example.utils.Pair;
 import org.example.utils.PermutationBits;
 
 
-
-
 @Slf4j
 public class FeistelNet implements EncryptorDecryptorSymmetric {
 
@@ -51,22 +49,24 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
 
         byte[] l0r0 = PermutationBits.permute(oneBlock, Tables.IP, true, true);
 
+        int currentBlockSize = getBlockSize();
+        int halfOfCurrentBlockSize = currentBlockSize / 2;
 
-        byte[] l0 = new byte[4];
-        byte[] r0 = new byte[4];
+        byte[] l0 = new byte[halfOfCurrentBlockSize];
+        byte[] r0 = new byte[halfOfCurrentBlockSize];
 
-        System.arraycopy(l0r0, 0, l0, 0, 4);
-        System.arraycopy(l0r0, 4, r0, 0, 4);
+        System.arraycopy(l0r0, 0, l0, 0, halfOfCurrentBlockSize);
+        System.arraycopy(l0r0, halfOfCurrentBlockSize, r0, 0, halfOfCurrentBlockSize);
 
         Pair<byte[], byte[]> l16r16 = rounds16OfFiestelNet(l0, r0, roundKeys, isEncrypt);
 
         byte[] l16 = l16r16.second();//переворот здесь!!!!!!!!!!!
         byte[] r16 = l16r16.first();
 
-        byte[] preCipherBlock = new byte[8];
+        byte[] preCipherBlock = new byte[currentBlockSize];
 
-        System.arraycopy(l16, 0, preCipherBlock, 0, 4);
-        System.arraycopy(r16, 0, preCipherBlock, 4, 4);
+        System.arraycopy(l16, 0, preCipherBlock, 0, halfOfCurrentBlockSize);
+        System.arraycopy(r16, 0, preCipherBlock, halfOfCurrentBlockSize, halfOfCurrentBlockSize);
 
 
         return PermutationBits.permute(preCipherBlock, Tables.IP_INV, true, true);
@@ -79,8 +79,6 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
 
         for (int i = 0; i < roundKeys.length; ++i) {
 
-
-
             byte[] lNext = r;
 
             int indexOfRoundKey = isEncrypt ? i : roundKeys.length - 1 - i;
@@ -90,11 +88,7 @@ public class FeistelNet implements EncryptorDecryptorSymmetric {
             l = lNext;
             r = rNext;
 
-
-
         }
-
-
         return new Pair<>(l,r);
     }
 

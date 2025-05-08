@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DesPaddingTest {
 
-    Context context = new Context(TypeAlgorithm.DES, new byte[8], CipherMode.ECB, PaddingMode.ISO_10126, new byte[8], new byte[16], 56);
+    Context context = new Context(TypeAlgorithm.DES, new byte[8], CipherMode.ECB, PaddingMode.ISO_10126, new byte[8], 51, new byte[16]);
 
     @Test
     void testEmptyInput() {
@@ -67,7 +67,7 @@ class DesPaddingTest {
         byte[] original = "Hello".getBytes();
         byte[] padded = context.addPkcs7Padding(original);
 
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
         byte[] encrypted = new byte[padded.length];
         for (int i = 0; i < padded.length; i += 8) {
             byte[] block = new byte[8];
@@ -104,7 +104,7 @@ class DesPaddingTest {
         byte[] padded = context.addPkcs7Padding(original);
         assertEquals(16, padded.length);
 
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
 
 
         byte[] encrypted = new byte[padded.length];
@@ -147,7 +147,7 @@ class DesPaddingTest {
         byte[] fileData = Files.readAllBytes(inputFile);
         byte[] paddedData = context.addPkcs7Padding(fileData);
 
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
         byte[] encryptedData = new byte[paddedData.length];
         for (int i = 0; i < paddedData.length; i += 8) {
             byte[] block = new byte[8];
@@ -190,7 +190,7 @@ class DesPaddingTest {
         assertEquals(8, paddedData.length, "Пустой файл должен быть дополнен до 8 байт");
 
 
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
         byte[] encrypted = des.encrypt(paddedData);
         byte[] decryptedPadded = des.decrypt(encrypted);
         byte[] decrypted = context.removePkcs7Padding(decryptedPadded);

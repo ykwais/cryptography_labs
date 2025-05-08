@@ -4,21 +4,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.interfaces.EncryptionTransformation;
 import org.example.interfaces.KeyExpansion;
 import org.example.interfaces.impl.FeistelNet;
+import org.example.interfaces.impl.FiestelFunction;
+import org.example.interfaces.impl.KeyExpansionImpl;
 
 @Slf4j
 public class Des extends FeistelNet {
 
+    private final int blockSize = 8;
 
-    // засунуть внутрь des расширение и преобразование
-    public Des(byte[] key, KeyExpansion keyExpansion, EncryptionTransformation encryptionTransformation) {
-        super(keyExpansion, encryptionTransformation);
+    public Des(byte[] key) {
+        super(new KeyExpansionImpl(), new FiestelFunction());
         this.setKey(key);
     }
 
     @Override
     public int getBlockSize() {
-        return 8;
+        return blockSize;
     }
-
 
 }

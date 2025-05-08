@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +18,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-public class FileEncryptionTests {
+class FileEncryptionTests {
     private static final byte[] TEST_KEY_DES = new byte[8];
     private static final byte[] TEST_KEY_DEAL_128 = new byte[16];
     private static final byte[] TEST_KEY_DEAL_192 = new byte[24];
@@ -71,8 +70,8 @@ public class FileEncryptionTests {
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
                 TEST_IV_DEAL,
-                TEST_KEY_DEAL_128,
-                TEST_DELTA
+                TEST_DELTA,
+                TEST_KEY_DEAL_128
         );
 
         testFileEncryptionDecryption(context, originalFile);
@@ -124,7 +123,6 @@ public class FileEncryptionTests {
                 mode,
                 PaddingMode.PKCS7,
                 TEST_IV_DES,
-                null,
                 TEST_DELTA
         );
 
@@ -143,8 +141,9 @@ public class FileEncryptionTests {
                 CipherMode.CBC,
                 padding,
                 TEST_IV_DEAL,
-                TEST_KEY_DEAL_256,
-                TEST_DELTA
+                TEST_DELTA,
+                TEST_KEY_DEAL_256
+
         );
 
         testFileEncryptionDecryption(context, testFile);

@@ -8,8 +8,6 @@ import org.example.constants.TypeAlgorithm;
 import org.example.deal.Deal;
 import org.example.des.Des;
 import org.example.interfaces.EncryptorDecryptorSymmetric;
-import org.example.interfaces.impl.FiestelFunction;
-import org.example.interfaces.impl.KeyExpansionImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,34 +30,60 @@ public class Context {
     private byte[] initialVector;
     private Integer deltaForRD = null;
     private final int blockSize;
+    private byte[] keyDeal = null;
 
 
     // убрать параметры из конструктора, keyDeal перенести в extras
     // нужно передавать не TypeAlgorithm а реализацию симметричного шифрования
-    public Context(TypeAlgorithm typeAlgorithm, byte[] key, CipherMode cipherMode, PaddingMode paddingMode, byte[] initializationVector, byte[] keyDeal, Object... extras) {
+    public Context(EncryptorDecryptorSymmetric algorithm, byte[] key, CipherMode cipherMode, PaddingMode paddingMode, byte[] initializationVector, Object... extras) {
         this.initialVector = initializationVector;
         this.cipherMode = cipherMode;
         this.paddingMode = paddingMode;
+        this.encryptorDecryptorSymmetric = algorithm;
 
-        switch (typeAlgorithm) { // избавиться от этого
-            case DES -> encryptorDecryptorSymmetric = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
-            case DEAL_128 -> encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_128, key, keyDeal);
-            case DEAL_192 -> encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_192, key, keyDeal);
-            case DEAL_256 -> encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_256, key, keyDeal);
-            default -> throw new IllegalStateException("Unexpected value: " + typeAlgorithm);
-        }
+
 
         if (extras != null && extras.length > 0) {
             if (!(extras[0] instanceof Integer)) {
-                throw new IllegalArgumentException("First extra parameter must be Integer (for deltaForRD)");
+                throw new IllegalArgumentException("First extra parameter must be Integer");
             }
 
             this.deltaForRD = (Integer) extras[0];
 
-            if (this.deltaForRD < 0) {
-                throw new IllegalArgumentException("Delta for RD mode cannot be negative");
+
+            if (extras.length > 1 && !(extras[1] instanceof byte[])) {
+                throw new IllegalArgumentException("Second extra parameter must be byte[]");
             }
+
+            if (extras.length > 1) {
+                keyDeal = (byte[]) extras[1];
+            }
+
         }
+
+//        switch (typeAlgorithm) { // избавиться от этого
+//            case DES -> encryptorDecryptorSymmetric = new Des(key);
+//            case DEAL_128 -> {
+//                if (keyDeal == null) {
+//                    throw new IllegalArgumentException("KeyDeal is null");
+//                }
+//                encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_128, key, keyDeal);
+//            }
+//            case DEAL_192 -> {
+//                if (keyDeal == null) {
+//                    throw new IllegalArgumentException("KeyDeal is null");
+//                }
+//                encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_192, key, keyDeal);
+//            }
+//            case DEAL_256 -> {
+//                if (keyDeal == null) {
+//                    throw new IllegalArgumentException("KeyDeal is null");
+//                }
+//                encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_256, key, keyDeal);
+//            }
+//            default -> throw new IllegalStateException("Unexpected value: " + typeAlgorithm);
+//        }
+
         this.blockSize = encryptorDecryptorSymmetric.getBlockSize();
     }
 
@@ -221,6 +245,10 @@ public class Context {
 
                 if (cipherMode == CipherMode.RD && deltaForRD == null) {
                     throw new IllegalArgumentException("deltaForRD is null!!! need to add for constructor of Context");
+                }
+
+                if (cipherMode == CipherMode.RD && deltaForRD < 0) {
+                    throw  new IllegalArgumentException("delta can't be negative!");
                 }
 
                 int delta = cipherMode == CipherMode.CTR ? 1 : deltaForRD;

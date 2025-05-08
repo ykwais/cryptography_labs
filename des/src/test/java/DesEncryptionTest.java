@@ -26,7 +26,7 @@ class DesEncryptionOneBlockTest {
 
 
         byte[] key = hexToBytes("133457799BBCDFF1");
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
         byte[] plaintext = hexToBytes("0123456789ABCDEF");
 
         byte[] ciphertext = des.encrypt(plaintext);
@@ -43,7 +43,7 @@ class DesEncryptionOneBlockTest {
     @Test
     void testWithAllZeros() {
         byte[] key = new byte[8];
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
 
         byte[] plaintext = new byte[8];
 
@@ -64,7 +64,7 @@ class DesEncryptionOneBlockTest {
                 (byte)0xC4, (byte)0xC8, (byte)0xC0,
                 (byte)0xCD, (byte)0xC0};
 
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
 
 
         byte[] plaintext = "DES_TEST".getBytes(StandardCharsets.UTF_8);
@@ -85,7 +85,7 @@ class DesEncryptionOneBlockTest {
     @Test
     void testDoubleEncryption() {
         byte[] key = hexToBytes("0102030405060708");
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
 
         byte[] plaintext = "TEST1234".getBytes(StandardCharsets.UTF_8);
 
@@ -103,7 +103,7 @@ class DesEncryptionOneBlockTest {
     @Test
     void testDeterministicEncryption() {
         byte[] key = hexToBytes("AABBCCDDEEFF0011");
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
 
         byte[] plaintext = "ABCDEFGH".getBytes(StandardCharsets.UTF_8);
 
@@ -128,7 +128,7 @@ class DesEncryptionOneBlockTest {
                 (byte)0xC4, (byte)0xC8, (byte)0xC0,
                 (byte)0xCD, (byte)0xC0};
 
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
 
 
         byte[] fileContent = Files.readAllBytes(testFile);
@@ -147,7 +147,7 @@ class DesEncryptionOneBlockTest {
     @Test
     void testBoundaryValues() {
         byte[] key = hexToBytes("FFFFFFFFFFFFFFFF");
-        Des des = new Des(key, new KeyExpansionImpl(), new FiestelFunction());
+        Des des = new Des(key);
 
         byte[] maxBlock = hexToBytes("FFFFFFFFFFFFFFFF");
 
