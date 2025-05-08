@@ -3,6 +3,7 @@ import org.example.constants.CipherMode;
 import org.example.constants.PaddingMode;
 import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
+import org.example.des.Des;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -33,8 +34,7 @@ class ContextAllPaddingTest {
         random.nextBytes(originalData);
 
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.ECB,
                 mode,
                 TEST_IV
@@ -76,8 +76,7 @@ class ContextAllPaddingTest {
         dataWithZero[6] = 8;
 
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.ECB,
                 PaddingMode.ZEROS,
                 TEST_IV

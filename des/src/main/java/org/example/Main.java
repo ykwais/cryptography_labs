@@ -21,10 +21,11 @@ public class Main {
     public static void main(String[] args) {
 
         byte[] key = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
-        byte[] keyDeal = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
+        //byte[] keyDeal = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
         byte[] initialVector = {(byte)0x01, (byte)0x01, (byte)0x01, (byte)0xC4, (byte)0xC8, (byte)0xC0, (byte)0xCD, (byte)0xC0};
 
-        Context context = new Context(TypeAlgorithm.DES, key, CipherMode.CTR, PaddingMode.ANSI_X923, initialVector, 10, keyDeal);
+        EncryptorDecryptorSymmetric algorithm = new Des(key);
+        Context context = new Context(algorithm, CipherMode.CTR, PaddingMode.ANSI_X923, initialVector, 10);
 
         byte[] fileData = null;
         try {

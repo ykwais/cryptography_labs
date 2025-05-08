@@ -1,8 +1,9 @@
+import org.example.constants.BitsInKeysOfDeal;
 import org.example.constants.CipherMode;
 import org.example.constants.PaddingMode;
-import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
-import org.junit.jupiter.api.Test;
+import org.example.deal.Deal;
+import org.example.des.Des;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -48,12 +49,11 @@ class FileEncryptionTests {
 
 
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY_DES,
-                CipherMode.CBC,
+                new Des(TEST_KEY_DES),
+                CipherMode.RD,
                 PaddingMode.PKCS7,
                 TEST_IV_DES,
-                null
+                TEST_DELTA
         );
 
         testFileEncryptionDecryption(context, originalFile);
@@ -65,13 +65,11 @@ class FileEncryptionTests {
         assumeTrue(Files.exists(originalFile), "Test file not found: " + originalFile);
 
         Context context = new Context(
-                TypeAlgorithm.DEAL_128,
-                TEST_KEY_DES,
-                CipherMode.CBC,
+                new Deal(BitsInKeysOfDeal.BIT_128, TEST_KEY_DES, TEST_KEY_DEAL_128),
+                CipherMode.CTR,
                 PaddingMode.PKCS7,
                 TEST_IV_DEAL,
-                TEST_DELTA,
-                TEST_KEY_DEAL_128
+                TEST_DELTA
         );
 
         testFileEncryptionDecryption(context, originalFile);
@@ -118,8 +116,7 @@ class FileEncryptionTests {
         assumeTrue(Files.exists(testFile));
 
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY_DES,
+                new Des(TEST_KEY_DES),
                 mode,
                 PaddingMode.PKCS7,
                 TEST_IV_DES,
@@ -136,46 +133,48 @@ class FileEncryptionTests {
         assumeTrue(Files.exists(testFile));
 
         Context context = new Context(
-                TypeAlgorithm.DEAL_256,
-                TEST_KEY_DES,
+                new Deal(BitsInKeysOfDeal.BIT_256, TEST_KEY_DES, TEST_KEY_DEAL_256),
                 CipherMode.CBC,
                 padding,
                 TEST_IV_DEAL,
-                TEST_DELTA,
-                TEST_KEY_DEAL_256
-
+                TEST_DELTA
         );
 
         testFileEncryptionDecryption(context, testFile);
     }
 
-//    @Test
-//    void testLargeFileEncryption() throws IOException {
-//        Path largeFile = createTempLargeFile(10 * 1024 * 1024); // 10MB
-//
-//        Context context = new Context(
-//                TypeAlgorithm.DEAL_192,
-//                TEST_KEY_DES,
-//                CipherMode.CTR,
-//                PaddingMode.ANSI_X923,
-//                TEST_IV,
-//                TEST_KEY_DEAL_192,
-//                TEST_DELTA
-//        );
-//
-//        testFileEncryptionDecryption(context, largeFile);
-//    }
-//
-//    private Path createTempLargeFile(long sizeMb) throws IOException {
-//        Path file = tempDir.resolve("large_file.bin");
-//        byte[] buffer = new byte[1024 * 1024]; // 1MB buffer
-//        new SecureRandom().nextBytes(buffer);
-//
-//        try (OutputStream os = Files.newOutputStream(file)) {
-//            for (long i = 0; i < sizeMb; i++) {
-//                os.write(buffer);
-//            }
-//        }
-//        return file;
-//    }
+    @ParameterizedTest
+    @EnumSource(CipherMode.class)
+    void testDealWithDifferentModes(CipherMode mode) throws IOException {
+        Path testFile = Paths.get("src/main/resources/second.txt");
+        assumeTrue(Files.exists(testFile));
+
+        Context context = new Context(
+                new Deal(BitsInKeysOfDeal.BIT_256, TEST_KEY_DES, TEST_KEY_DEAL_256),
+                mode,
+                PaddingMode.PKCS7,
+                TEST_IV_DEAL,
+                TEST_DELTA
+        );
+
+        testFileEncryptionDecryption(context, testFile);
+    }
+
+    @ParameterizedTest
+    @EnumSource(PaddingMode.class)
+    void testDesWithDifferentPadding(PaddingMode padding) throws IOException {
+        Path testFile = Paths.get("src/main/resources/пз_3_менеджмент.pdf");
+        assumeTrue(Files.exists(testFile));
+
+        Context context = new Context(
+                new Des(TEST_KEY_DES),
+                CipherMode.RD,
+                padding,
+                TEST_IV_DES,
+                TEST_DELTA
+        );
+
+        testFileEncryptionDecryption(context, testFile);
+    }
+
 }

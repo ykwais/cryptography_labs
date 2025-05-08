@@ -2,6 +2,7 @@ import org.example.constants.CipherMode;
 import org.example.constants.PaddingMode;
 import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
+import org.example.des.Des;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -50,8 +51,7 @@ class ContextDesTest {
         originalData[dataLength-1] = (byte) 0x01;
 
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 cipherMode,
                 paddingMode,
                 TEST_IV,

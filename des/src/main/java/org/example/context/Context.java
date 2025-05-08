@@ -1,12 +1,8 @@
 package org.example.context;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.constants.BitsInKeysOfDeal;
 import org.example.constants.PaddingMode;
 import org.example.constants.CipherMode;
-import org.example.constants.TypeAlgorithm;
-import org.example.deal.Deal;
-import org.example.des.Des;
 import org.example.interfaces.EncryptorDecryptorSymmetric;
 
 import java.io.IOException;
@@ -30,12 +26,8 @@ public class Context {
     private byte[] initialVector;
     private Integer deltaForRD = null;
     private final int blockSize;
-    private byte[] keyDeal = null;
 
-
-    // убрать параметры из конструктора, keyDeal перенести в extras
-    // нужно передавать не TypeAlgorithm а реализацию симметричного шифрования
-    public Context(EncryptorDecryptorSymmetric algorithm, byte[] key, CipherMode cipherMode, PaddingMode paddingMode, byte[] initializationVector, Object... extras) {
+    public Context(EncryptorDecryptorSymmetric algorithm, CipherMode cipherMode, PaddingMode paddingMode, byte[] initializationVector, Object... extras) {
         this.initialVector = initializationVector;
         this.cipherMode = cipherMode;
         this.paddingMode = paddingMode;
@@ -50,39 +42,7 @@ public class Context {
 
             this.deltaForRD = (Integer) extras[0];
 
-
-            if (extras.length > 1 && !(extras[1] instanceof byte[])) {
-                throw new IllegalArgumentException("Second extra parameter must be byte[]");
-            }
-
-            if (extras.length > 1) {
-                keyDeal = (byte[]) extras[1];
-            }
-
         }
-
-//        switch (typeAlgorithm) { // избавиться от этого
-//            case DES -> encryptorDecryptorSymmetric = new Des(key);
-//            case DEAL_128 -> {
-//                if (keyDeal == null) {
-//                    throw new IllegalArgumentException("KeyDeal is null");
-//                }
-//                encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_128, key, keyDeal);
-//            }
-//            case DEAL_192 -> {
-//                if (keyDeal == null) {
-//                    throw new IllegalArgumentException("KeyDeal is null");
-//                }
-//                encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_192, key, keyDeal);
-//            }
-//            case DEAL_256 -> {
-//                if (keyDeal == null) {
-//                    throw new IllegalArgumentException("KeyDeal is null");
-//                }
-//                encryptorDecryptorSymmetric = new Deal(BitsInKeysOfDeal.BIT_256, key, keyDeal);
-//            }
-//            default -> throw new IllegalStateException("Unexpected value: " + typeAlgorithm);
-//        }
 
         this.blockSize = encryptorDecryptorSymmetric.getBlockSize();
     }

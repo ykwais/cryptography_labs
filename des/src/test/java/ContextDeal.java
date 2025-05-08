@@ -1,7 +1,9 @@
+import org.example.constants.BitsInKeysOfDeal;
 import org.example.constants.CipherMode;
 import org.example.constants.PaddingMode;
 import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
+import org.example.deal.Deal;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -95,13 +97,11 @@ class ContextDeal {
         originalData[dataLength-1] = (byte) 0x01;
 
         Context context = new Context(
-                TypeAlgorithm.DEAL_128,
-                TEST_KEY,
+                new Deal(BitsInKeysOfDeal.BIT_128, TEST_KEY, TEST_KEY_DEAL_128),
                 cipherMode,
                 paddingMode,
                 TEST_IV,
-                TEST_DELTA,
-                TEST_KEY_DEAL_128
+                TEST_DELTA
         );
 
         Path inputFile = tempDir.resolve("input_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");
@@ -125,14 +125,11 @@ class ContextDeal {
 
 
         Context context = new Context(
-                TypeAlgorithm.DEAL_192,
-                TEST_KEY,
+                new Deal(BitsInKeysOfDeal.BIT_192, TEST_KEY, TEST_KEY_DEAL_192),
                 cipherMode,
                 paddingMode,
                 TEST_IV,
-                TEST_DELTA,
-                TEST_KEY_DEAL_192
-
+                TEST_DELTA
         );
 
         Path inputFile = tempDir.resolve("input_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");
@@ -157,14 +154,11 @@ class ContextDeal {
 
 
         Context context = new Context(
-                TypeAlgorithm.DEAL_256,
-                TEST_KEY,
+                new Deal(BitsInKeysOfDeal.BIT_256, TEST_KEY, TEST_KEY_DEAL_256),
                 cipherMode,
                 paddingMode,
                 TEST_IV,
-                TEST_DELTA,
-                TEST_KEY_DEAL_256
-
+                TEST_DELTA
         );
 
         Path inputFile = tempDir.resolve("input_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");

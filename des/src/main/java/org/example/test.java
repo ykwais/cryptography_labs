@@ -1,10 +1,13 @@
 package org.example;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.constants.BitsInKeysOfDeal;
 import org.example.constants.CipherMode;
 import org.example.constants.PaddingMode;
 import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
+import org.example.deal.Deal;
+import org.example.interfaces.EncryptorDecryptorSymmetric;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,8 +44,8 @@ public class test {
 
                 //testAlgorithm(TypeAlgorithm.DES, DES_KEY, null, inputFile);
 
-
-                testAlgorithm(TypeAlgorithm.DEAL_128, DES_KEY, DEAL_KEY, inputFile);
+                EncryptorDecryptorSymmetric algo = new Deal(BitsInKeysOfDeal.BIT_128, DES_KEY, DEAL_KEY);
+                testAlgorithm(algo, inputFile);
 
             } catch (Exception e) {
                 log.error("Ошибка при обработке файла " + filename + e.getMessage());
@@ -50,35 +53,10 @@ public class test {
         }
     }
 
-    private static void testAlgorithm(TypeAlgorithm algorithm,
-                                      byte[] key,
-                                      byte[] dealKey,
-                                      Path inputFile) throws Exception {
-        log.info("\nАлгоритм: " + algorithm);
+    private static void testAlgorithm(EncryptorDecryptorSymmetric algo, Path inputFile) throws Exception {
+        log.info("\nАлгоритм: " + algo.getClass().getName());
 
-        Context context;
-
-        if (algorithm == TypeAlgorithm.DES) {
-            context = new Context(
-                    algorithm,
-                    key,
-                    CipherMode.CBC,
-                    PaddingMode.PKCS7,
-                    IV_des,
-                    DELTA
-
-            );
-        } else {
-            context = new Context(
-                    algorithm,
-                    key,
-                    CipherMode.CBC,
-                    PaddingMode.PKCS7,
-                    IV_deal,
-                    DELTA,
-                    dealKey
-            );
-        }
+        Context context = new Context(algo, CipherMode.RD, PaddingMode.ANSI_X923, IV_deal, DELTA);
 
 
         Path encryptedFile = Paths.get("src/main/resources", "_encrypted.bin");

@@ -2,6 +2,7 @@ import org.example.constants.CipherMode;
 import org.example.constants.PaddingMode;
 import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
+import org.example.des.Des;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -42,8 +43,7 @@ class ContextPKCSandECBTests {
     @Test
     void testEncryptDecryptFile() throws Exception {
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
                 TEST_IV
@@ -68,8 +68,7 @@ class ContextPKCSandECBTests {
     void testEmptyFile() throws Exception {
         Path emptyFile = Files.createTempFile("des-empty", ".txt");
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
                 TEST_IV
@@ -87,8 +86,7 @@ class ContextPKCSandECBTests {
     @Test
     void testPkcs7Padding() {
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
                 TEST_IV
@@ -107,8 +105,7 @@ class ContextPKCSandECBTests {
     void testFullBlockPadding() {
 
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
                 TEST_IV
@@ -127,8 +124,7 @@ class ContextPKCSandECBTests {
     @Test
     void testParallelProcessing() {
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.ECB,
                 PaddingMode.PKCS7,
                 TEST_IV
@@ -148,8 +144,7 @@ class ContextPKCSandECBTests {
     @Test
     void testCBC() throws Exception {
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
                 TEST_IV
@@ -173,8 +168,7 @@ class ContextPKCSandECBTests {
     @Test
     void testParallelCBC() {
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
                 TEST_IV
@@ -195,8 +189,7 @@ class ContextPKCSandECBTests {
     void testEmptyFileCBC() throws Exception {
         Path emptyFile = Files.createTempFile("des-empty", ".txt");
         Context context = new Context(
-                TypeAlgorithm.DES,
-                TEST_KEY,
+                new Des(TEST_KEY),
                 CipherMode.CBC,
                 PaddingMode.PKCS7,
                 TEST_IV

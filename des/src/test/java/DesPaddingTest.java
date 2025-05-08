@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DesPaddingTest {
 
-    Context context = new Context(TypeAlgorithm.DES, new byte[8], CipherMode.ECB, PaddingMode.ISO_10126, new byte[8], 51, new byte[16]);
+    Context context = new Context(new Des(new byte[8]), CipherMode.ECB, PaddingMode.ISO_10126, new byte[8], 51);
 
     @Test
     void testEmptyInput() {
