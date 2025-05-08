@@ -1,6 +1,5 @@
 import org.example.constants.CipherMode;
 import org.example.constants.PaddingMode;
-import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
 import org.example.des.Des;
 import org.junit.jupiter.api.Test;
@@ -63,8 +62,11 @@ class ContextDesTest {
         Path decryptedFile = tempDir.resolve("decrypted_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");
 
         Files.write(inputFile, originalData);
+
         context.encrypt(inputFile, encryptedFile);
         context.decrypt(encryptedFile, decryptedFile);
+
+
 
         byte[] decryptedData = Files.readAllBytes(decryptedFile);
         assertArrayEquals(originalData, decryptedData,

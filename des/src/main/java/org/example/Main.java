@@ -1,5 +1,6 @@
 package org.example;
 
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.example.constants.CipherMode;
 import org.example.constants.PaddingMode;
@@ -63,11 +64,11 @@ public class Main {
 
 
 
-        byte[] res = context.encryptDecryptInner(fileData, true);
-        log.info("res: {}", bytesToHex(res));
+        Pair<byte[], byte[]> res = context.encryptDecryptInner(fileData, null,true);
+        log.info("res: {}", bytesToHex(res.getKey()));
 
-        byte[] dec = context.encryptDecryptInner(res, false);
-        log.info("dec: {}", bytesToHex(dec));
+        Pair<byte[], byte[]> dec = context.encryptDecryptInner(res.getKey(), null, false);
+        log.info("dec: {}", bytesToHex(dec.getKey()));
 
     }
 

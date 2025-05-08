@@ -109,8 +109,11 @@ class ContextDeal {
         Path decryptedFile = tempDir.resolve("decrypted_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");
 
         Files.write(inputFile, originalData);
+
         context.encrypt(inputFile, encryptedFile);
         context.decrypt(encryptedFile, decryptedFile);
+
+
 
         byte[] decryptedData = Files.readAllBytes(decryptedFile);
         assertArrayEquals(originalData, decryptedData,
@@ -137,8 +140,10 @@ class ContextDeal {
         Path decryptedFile = tempDir.resolve("decrypted_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");
 
         Files.write(inputFile, originalData);
+
         context.encrypt(inputFile, encryptedFile);
         context.decrypt(encryptedFile, decryptedFile);
+
 
         byte[] decryptedData = Files.readAllBytes(decryptedFile);
         assertArrayEquals(originalData, decryptedData,
@@ -166,6 +171,7 @@ class ContextDeal {
         Path decryptedFile = tempDir.resolve("decrypted_" + cipherMode + "_" + paddingMode + "_" + dataLength + ".bin");
 
         Files.write(inputFile, originalData);
+
         context.encrypt(inputFile, encryptedFile);
         context.decrypt(encryptedFile, decryptedFile);
 

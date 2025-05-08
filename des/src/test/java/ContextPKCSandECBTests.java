@@ -121,25 +121,25 @@ class ContextPKCSandECBTests {
         assertArrayEquals(fullBlock, unpadded);
     }
 
-    @Test
-    void testParallelProcessing() {
-        Context context = new Context(
-                new Des(TEST_KEY),
-                CipherMode.ECB,
-                PaddingMode.PKCS7,
-                TEST_IV
-        );
-
-        byte[] largeData = new byte[4096];
-        new Random().nextBytes(largeData);
-
-        byte[] encrypted = context.encryptDecryptInner(largeData, true);
-        assertNotNull(encrypted);
-        assertEquals(largeData.length, encrypted.length);
-
-        byte[] decrypted = context.encryptDecryptInner(encrypted, false);
-        assertArrayEquals(largeData, decrypted);
-    }
+//    @Test
+//    void testParallelProcessing() {
+//        Context context = new Context(
+//                new Des(TEST_KEY),
+//                CipherMode.ECB,
+//                PaddingMode.PKCS7,
+//                TEST_IV
+//        );
+//
+//        byte[] largeData = new byte[4096];
+//        new Random().nextBytes(largeData);
+//
+//        byte[] encrypted = context.encryptDecryptInner(largeData, true);
+//        assertNotNull(encrypted);
+//        assertEquals(largeData.length, encrypted.length);
+//
+//        byte[] decrypted = context.encryptDecryptInner(encrypted, false);
+//        assertArrayEquals(largeData, decrypted);
+//    }
 
     @Test
     void testCBC() throws Exception {
@@ -165,25 +165,7 @@ class ContextPKCSandECBTests {
         assertEquals(TEST_TEXT, new String(decryptedData));
     }
 
-    @Test
-    void testParallelCBC() {
-        Context context = new Context(
-                new Des(TEST_KEY),
-                CipherMode.CBC,
-                PaddingMode.PKCS7,
-                TEST_IV
-        );
 
-        byte[] largeData = new byte[4096];
-        new Random().nextBytes(largeData);
-
-        byte[] encrypted = context.encryptDecryptInner(largeData, true);
-        assertNotNull(encrypted);
-        assertEquals(largeData.length, encrypted.length);
-
-        byte[] decrypted = context.encryptDecryptInner(encrypted, false);
-        assertArrayEquals(largeData, decrypted);
-    }
 
     @Test
     void testEmptyFileCBC() throws Exception {

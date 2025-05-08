@@ -80,12 +80,18 @@ class FileEncryptionTests {
         Path encryptedFile = tempDir.resolve("encrypted_" + fileName);
         Path decryptedFile = tempDir.resolve("decrypted_" + fileName);
 
+
         context.encrypt(originalFile, encryptedFile);
+
+
         assertTrue(Files.exists(encryptedFile), "Encrypted file not created");
         assertNotEquals(Files.size(originalFile), Files.size(encryptedFile),
                 "File sizes should differ after encryption");
 
+
         context.decrypt(encryptedFile, decryptedFile);
+
+
         assertTrue(Files.exists(decryptedFile), "Decrypted file not created");
 
         assertTrue(Files.mismatch(originalFile, decryptedFile) == -1,

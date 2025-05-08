@@ -45,6 +45,7 @@ class ContextAllPaddingTest {
         Path decryptedFile = tempDir.resolve("decrypted.bin");
 
         Files.write(inputFile, originalData);
+
         context.encrypt(inputFile, encryptedFile);
         context.decrypt(encryptedFile, decryptedFile);
 

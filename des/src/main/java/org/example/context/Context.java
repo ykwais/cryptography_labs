@@ -1,5 +1,6 @@
 package org.example.context;
 
+import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.example.constants.PaddingMode;
 import org.example.constants.CipherMode;
@@ -22,7 +23,7 @@ public class Context {
     private final CipherMode cipherMode;
     private final PaddingMode paddingMode;
     private final EncryptorDecryptorSymmetric encryptorDecryptorSymmetric;
-    private static final int BUFFER_SIZE = 4096;
+    private static final int BUFFER_SIZE = 1024*512;
     private byte[] initialVector;
     private Integer deltaForRD = null;
     private final int blockSize;
@@ -48,6 +49,7 @@ public class Context {
     }
 
     public void encrypt(Path inputPath, Path encryptedPath) throws IOException {
+        byte[] previous = null;
         try (InputStream in = Files.newInputStream(inputPath);
              OutputStream out = Files.newOutputStream(encryptedPath)) {
 
@@ -57,23 +59,27 @@ public class Context {
 
             while ((bytesRead = in.read(buffer)) != -1) {
                 if (lastBlock != null) {
-                    out.write(encryptDecryptInner(lastBlock, true));
+                    Pair<byte[], byte[]> encryptedPart = encryptDecryptInner(lastBlock, previous,true);
+                    previous = encryptedPart.getValue();
+                    out.write(encryptedPart.getKey());
                 }
                 lastBlock = Arrays.copyOf(buffer, bytesRead);
             }
 
             if (lastBlock != null) {
                 byte[] paddedBlock = addPadding(lastBlock);
-                out.write(encryptDecryptInner(paddedBlock, true));
+                Pair<byte[], byte[]> encryptedPart = encryptDecryptInner(paddedBlock, previous,true);
+                out.write(encryptedPart.getKey());
             } else {
                 byte[] emptyPadded = addPadding(new byte[0]);
-                out.write(encryptDecryptInner(emptyPadded, true));
+                Pair<byte[], byte[]> encryptedPart = encryptDecryptInner(emptyPadded, previous,true);
+                out.write(encryptedPart.getKey());
             }
         }
     }
 
-    public void decrypt(Path encryptedFilePath, Path decryptedFilePath)
-            throws IOException, IllegalArgumentException {
+    public void decrypt(Path encryptedFilePath, Path decryptedFilePath) throws IOException {
+        byte[] previous = null;
         try (InputStream in = Files.newInputStream(encryptedFilePath);
              OutputStream out = Files.newOutputStream(decryptedFilePath)) {
 
@@ -85,7 +91,9 @@ public class Context {
                 if (lastBlock != null) {
                     out.write(lastBlock);
                 }
-                lastBlock = encryptDecryptInner(Arrays.copyOf(buffer, bytesRead), false);
+                Pair<byte[], byte[]> afterDecrypt = encryptDecryptInner(Arrays.copyOf(buffer, bytesRead), previous, false);
+                lastBlock = afterDecrypt.getKey();
+                previous = afterDecrypt.getValue();
             }
 
             if (lastBlock != null) {
@@ -95,7 +103,7 @@ public class Context {
         }
     }
 
-    public byte[] encryptDecryptInner(byte[] data, boolean isEncrypt) {
+    public Pair<byte[], byte[]> encryptDecryptInner(byte[] data, byte[] prev, boolean isEncrypt) {
         if (initialVector != null && initialVector.length != blockSize) {
             throw new IllegalArgumentException("Initial vector length does not match block size");
         }
@@ -107,6 +115,7 @@ public class Context {
         }
 
         byte[] result = new byte[data.length];
+        byte[] previous = new byte[blockSize];
         int amountBlock = data.length / blockSize;
 
         switch(cipherMode) {
@@ -121,7 +130,7 @@ public class Context {
             case CBC:
                 if (isEncrypt) {
                     byte[] blockMessage = Arrays.copyOfRange(data,0, blockSize );
-                    blockMessage = xorByteArrays(blockMessage, initialVector);
+                    blockMessage = xorByteArrays(blockMessage, (prev == null) ? initialVector : prev);
                     byte[] resultPrev = encryptorDecryptorSymmetric.encrypt(blockMessage);
                     System.arraycopy(resultPrev, 0, result, 0, blockSize);
                     for(int i = blockSize; i < data.length; i += blockSize) {
@@ -130,6 +139,7 @@ public class Context {
                         resultPrev = encryptorDecryptorSymmetric.encrypt(blockMessage);
                         System.arraycopy(resultPrev, 0, result, i, blockSize);
                     }
+                    previous = resultPrev;
                 } else {
                     byte[] decodedBlocks = new byte[data.length];
                     IntStream.range(0, amountBlock).parallel().forEach(i -> {
@@ -140,7 +150,7 @@ public class Context {
                     });
 
                     byte[] arrayCipherTexts = new byte[data.length + blockSize];//тут размер вектора инициализации добавил
-                    System.arraycopy(initialVector, 0, arrayCipherTexts, 0, initialVector.length);
+                    System.arraycopy((prev == null) ? initialVector : prev, 0, arrayCipherTexts, 0, initialVector.length);
                     System.arraycopy(data, 0, arrayCipherTexts, initialVector.length, data.length);
 
                     IntStream.range(0, amountBlock).parallel().forEach(i -> {
@@ -150,10 +160,12 @@ public class Context {
                         byte[] message = xorByteArrays(firstBlock, secondBlock);
                         System.arraycopy(message, 0, result, offset, blockSize);
                     });
+
+                    System.arraycopy(arrayCipherTexts, arrayCipherTexts.length - blockSize, previous, 0, blockSize);
                 }
                 break;
             case OFB:
-                byte[] previousEncryptedBlockOFB = encryptorDecryptorSymmetric.encrypt(initialVector);
+                byte[] previousEncryptedBlockOFB = (prev == null) ? encryptorDecryptorSymmetric.encrypt(initialVector) : prev;
                 for(int i = 0; i < amountBlock; i++) {
                     int offset = i * blockSize;
                     byte[] block = Arrays.copyOfRange(data, offset, offset + blockSize);
@@ -161,20 +173,22 @@ public class Context {
                     System.arraycopy(preResult, 0, result, offset, blockSize);
                     previousEncryptedBlockOFB = encryptorDecryptorSymmetric.encrypt(previousEncryptedBlockOFB);
                 }
+                previous = previousEncryptedBlockOFB;
                 break;
             case CFB:
                 if (isEncrypt) {
-                    byte[] previousEncryptedBlockCFB = initialVector;
+                    byte[] previousEncryptedBlockCFB = (prev == null) ? initialVector : prev;
                     for(int i = 0; i < amountBlock; i++) {
                         int offset = i * blockSize;
                         byte[] block = Arrays.copyOfRange(data, offset, offset + blockSize);
                         byte[] preResult = xorByteArrays(encryptorDecryptorSymmetric.encrypt(previousEncryptedBlockCFB), block);
                         System.arraycopy(preResult, 0, result, offset, blockSize);
                         previousEncryptedBlockCFB = preResult;
+                        previous = previousEncryptedBlockCFB;
                     }
                 } else {
                     byte[] cipherTextsArray = new byte[data.length + initialVector.length];
-                    System.arraycopy(initialVector, 0, cipherTextsArray, 0, initialVector.length);
+                    System.arraycopy((prev == null) ? initialVector : prev, 0, cipherTextsArray, 0, initialVector.length);
                     System.arraycopy(data, 0, cipherTextsArray, initialVector.length, data.length);
 
                     IntStream.range(0, amountBlock).parallel().forEach(i -> {
@@ -184,10 +198,11 @@ public class Context {
                         byte[] message = xorByteArrays(encryptorDecryptorSymmetric.encrypt(blockFirst), blockSecond);
                         System.arraycopy(message, 0, result, offset, blockSize);
                     });
+                    System.arraycopy(data, data.length - blockSize, previous, 0 , blockSize);
                 }
                 break;
             case PCBC:
-                byte[] previousEncryptedBlockPCBC = initialVector;
+                byte[] previousEncryptedBlockPCBC = (prev == null) ? initialVector : prev;
                 for(int i = 0; i < amountBlock; i++) {
                     int offset = i * blockSize;
                     byte[] block = Arrays.copyOfRange(data, offset, offset + blockSize);
@@ -196,11 +211,12 @@ public class Context {
                     System.arraycopy(preResult, 0, result, offset, blockSize);
                     previousEncryptedBlockPCBC = xorByteArrays(preResult, block);
                 }
+                previous = previousEncryptedBlockPCBC;
                 break;
             case CTR, RD:
                 byte[] iv = new byte[initialVector.length];
                 System.arraycopy(initialVector, 0, iv, 0, initialVector.length);
-                BigInteger initialCounter = new BigInteger(iv);
+                BigInteger initialCounter = (prev == null) ? new BigInteger(iv) : new BigInteger(prev);
 
 
                 if (cipherMode == CipherMode.RD && deltaForRD == null) {
@@ -224,13 +240,15 @@ public class Context {
                     byte[] xored = xorByteArrays(bytesOfCurrentCounter, block);
                     System.arraycopy(xored, 0, result, offset, blockSize);
                 });
+                previous = initialCounter.add(BigInteger.valueOf(amountBlock).multiply(BigInteger.valueOf(delta))).toByteArray();
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported cipher mode: " + cipherMode);
         }
 
-        return result;
+        return new Pair<>(result, previous);
     }
+
 
     private byte[] addPadding(byte[] data) {
         switch (paddingMode) {
