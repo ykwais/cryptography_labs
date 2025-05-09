@@ -1,4 +1,4 @@
-package org.example.rijnadael;
+package org.example.rijnadael.stateless;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -127,10 +127,6 @@ public interface GaloisOperations {
 
         for (Short factor : possibleFactors) {
             while (mod(polynomial, factor) == 0) {
-//                short remainder = mod(polynomial, factor);
-//                if (remainder != 0) {
-//                    break;
-//                }
 
                 factors.add(factor);
                 polynomial = divide(polynomial, factor);

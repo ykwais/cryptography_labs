@@ -1,15 +1,17 @@
 package RijndaelTests;
 
-import org.example.rijnadael.GaloisOperations;
+import org.example.rijnadael.stateless.GaloisOperations;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
 import java.util.List;
 
-import static org.example.rijnadael.GaloisOperations.factorizePolynomial;
+import static org.example.rijnadael.GaloisBig.factorize;
+import static org.example.rijnadael.stateless.GaloisOperations.factorizePolynomial;
 import static org.example.utils.ToView.formatShortToBinary;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DefaultMathOperationTests {
+class DefaultMathOperationTests {
 
     @Test
     void testAddingPolynomous() {
@@ -118,6 +120,60 @@ public class DefaultMathOperationTests {
         System.out.println("Разложение полинома:");
         for (Short f : factors4) {
             System.out.println(Integer.toBinaryString(f & 0xFFFF));
+        }
+    }
+
+    @Test
+    void testBigFactorization() {
+        BigInteger poly = new BigInteger("100101", 2);
+
+        List<BigInteger> factors = factorize(poly);
+
+        System.out.println("Факторизация " + poly.toString(2) + ":");
+        for (BigInteger f : factors) {
+            System.out.println(f.toString(2));
+        }
+
+
+
+        BigInteger poly2 = new BigInteger("1100101", 2);
+
+        List<BigInteger> factors2 = factorize(poly2);
+
+        System.out.println("Факторизация " + poly2.toString(2) + ":");
+        for (BigInteger f : factors2) {
+            System.out.println(f.toString(2));
+        }
+
+
+
+        BigInteger poly3 = new BigInteger("1", 2);
+
+        List<BigInteger> factors3 = factorize(poly3);
+
+        System.out.println("Факторизация " + poly3.toString(2) + ":");
+        for (BigInteger f : factors3) {
+            System.out.println(f.toString(2));
+        }
+
+
+        BigInteger poly4 = new BigInteger("0", 2);
+
+        List<BigInteger> factors4 = factorize(poly4);
+
+        System.out.println("Факторизация " + poly4.toString(2) + ":");
+        for (BigInteger f : factors4) {
+            System.out.println(f.toString(2));
+        }
+
+
+        BigInteger poly5 = new BigInteger("010000001000000001010000", 2);
+
+        List<BigInteger> factors5 = factorize(poly5);
+
+        System.out.println("Факторизация " + poly5.toString(2) + ":");
+        for (BigInteger f : factors5) {
+            System.out.println(f.toString(2));
         }
     }
 
