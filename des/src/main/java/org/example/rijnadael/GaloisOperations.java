@@ -1,5 +1,8 @@
 package org.example.rijnadael;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public interface GaloisOperations {
     static byte addPolys(byte a, byte b) {
         return (byte) (a ^ b);
@@ -27,6 +30,24 @@ public interface GaloisOperations {
         return result;
     }
 
+    static byte powMod(byte polynom, int degree, byte mod) {
+        if (degree < 0) throw new IllegalArgumentException("degree must be >= 0");
+        byte result = 1;
+        while (degree > 0) {
+            if ((degree & 1) == 1) {
+                result = multiplyPolymomsByMod(result, polynom, mod);
+            }
+            degree >>= 1;
+            polynom = multiplyPolymomsByMod(polynom, polynom, mod);
+        }
+        return result;
+    }
+
+    static byte getInversePolynom(byte polynom, byte mod) {
+        //TODO проверка на неприводимость
+        return powMod(polynom, 254, mod);
+    }
+
     static int degree(short poly) {
         if (poly == 0) return -1;
         int degree = 0;
@@ -36,6 +57,49 @@ public interface GaloisOperations {
             tmp >>>= 1;
         }
         return degree-1;
+    }
+
+    static short[] divideAndMod(short a, short b) {
+        if (b == 0) throw new ArithmeticException("Division by zero");
+        int degreeSecond = degree(b);
+        short full  = 0;
+        short mod = a;
+        while (degree(mod) >= degreeSecond) {
+            int shift = degree(mod) - degreeSecond;
+            full ^= (short) (1 << shift);
+            mod ^= (short) (b << shift);
+        }
+        return new short[]{full, mod};
+    }
+
+    static short divide(short a, short b) {
+        return divideAndMod(a, b)[0];
+    }
+
+    static short mod(short a, short b) {
+        return divideAndMod(a, b)[1];
+    }
+
+    static boolean isIrredicible(short pol, int degree) {
+        int upperValue = 1 << (degree/2 + 1);
+        for (int i = 2; i < upperValue; i++) {
+            if (mod(pol, (short) i) == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static List<Short> calculateAllIrrediciblePolynoms(int degree) {
+        List<Short> result = new ArrayList<>();
+        short start = (short) (1 << degree);
+        short end = (short) (start << 1);
+        for (short i = start; i < end; i++) {
+            if (isIrredicible(i, degree)) {
+                result.add(i);
+            }
+        }
+        return result;
     }
 
 

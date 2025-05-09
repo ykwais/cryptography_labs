@@ -23,4 +23,15 @@ public class ToView {
         }
         return bString.toString().trim();
     }
+
+    public static String formatShortToBinary(short value) {
+
+        byte highByte = (byte) ((value >> 8) & 0xFF);
+        byte lowByte = (byte) (value & 0xFF);
+
+        String highByteStr = String.format("%8s", Integer.toBinaryString(highByte & 0xFF)).replace(' ', '0');
+        String lowByteStr = String.format("%8s", Integer.toBinaryString(lowByte & 0xFF)).replace(' ', '0');
+
+        return highByteStr + " " + lowByteStr;
+    }
 }
