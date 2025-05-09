@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 import java.util.List;
 
-import static org.example.rijnadael.GaloisBig.factorize;
+import static org.example.rijnadael.stateless.GaloisBig.factorize;
 import static org.example.rijnadael.stateless.GaloisOperations.factorizePolynomial;
 import static org.example.utils.ToView.formatShortToBinary;
 import static org.junit.jupiter.api.Assertions.assertEquals;

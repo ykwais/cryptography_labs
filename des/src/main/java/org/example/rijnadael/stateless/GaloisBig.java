@@ -1,4 +1,4 @@
-package org.example.rijnadael;
+package org.example.rijnadael.stateless;
 
 import java.math.BigInteger;
 import java.util.ArrayList;

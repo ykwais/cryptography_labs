@@ -1,4 +1,4 @@
-package org.example.rijnadael;
+package org.example.rijnadael.supply;
 
 import static org.example.rijnadael.stateless.GaloisOperations.addPolys;
 import static org.example.rijnadael.stateless.GaloisOperations.multiplyPolymomsByMod;
