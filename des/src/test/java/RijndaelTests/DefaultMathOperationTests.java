@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.example.rijnadael.GaloisOperations.factorizePolynomial;
 import static org.example.utils.ToView.formatShortToBinary;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -75,6 +76,48 @@ public class DefaultMathOperationTests {
         assertEquals(30, res.size());
         for (int i = 1; i <= res.size(); i++) {
             System.out.println(i + ") " + formatShortToBinary(res.get(i-1)));
+        }
+
+        System.out.println("!!!!!!!!!!!!!!!!");
+
+        List<Short> res2 = GaloisOperations.calculateAllIrrediciblePolynoms(5);
+        for (int i = 0; i < res2.size(); i++) {
+            System.out.println(i + 1 + ") " + formatShortToBinary(res2.get(i)));
+        }
+    }
+
+    @Test
+    void testFactorizationShort() {
+        short poly = (short) 0b100101; // x^5 + x^2 + 1 - уже неприводимый
+        List<Short> factors = factorizePolynomial(poly);
+
+        System.out.println("Разложение полинома:");
+        for (Short f : factors) {
+            System.out.println(Integer.toBinaryString(f & 0xFFFF));
+        }
+
+        short poly2 = (short) 0b1100101; // x^6 + x^5 + x^2 + 1 = (x + 1)(x^2 + x + 1)(x^3 + x^2 + 1)
+        List<Short> factors2 = factorizePolynomial(poly2);
+
+        System.out.println("Разложение полинома:");
+        for (Short f : factors2) {
+            System.out.println(Integer.toBinaryString(f & 0xFFFF));
+        }
+
+        short poly3 = (short) 0b1; // 1
+        List<Short> factors3 = factorizePolynomial(poly3);
+
+        System.out.println("Разложение полинома:");
+        for (Short f : factors3) {
+            System.out.println(Integer.toBinaryString(f & 0xFFFF));
+        }
+
+        short poly4 = (short) 0b0; // 0
+        List<Short> factors4 = factorizePolynomial(poly4);
+
+        System.out.println("Разложение полинома:");
+        for (Short f : factors4) {
+            System.out.println(Integer.toBinaryString(f & 0xFFFF));
         }
     }
 

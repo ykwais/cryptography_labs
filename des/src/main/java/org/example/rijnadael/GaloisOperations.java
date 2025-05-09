@@ -102,6 +102,56 @@ public interface GaloisOperations {
         return result;
     }
 
+    static List<Short> factorizePolynomial(short polynomial) {
+        List<Short> factors = new ArrayList<>();
+
+        if (polynomial == 0) {
+            return factors;
+        }
+
+        int deg = degree(polynomial);
+        if (deg == 0) {
+            factors.add((short) 1);
+            return factors;
+        }
+
+        if (isIrredicible(polynomial, deg)) {
+            factors.add(polynomial);
+            return factors;
+        }
+
+        List<Short> possibleFactors = new ArrayList<>();
+        for (int d = 1; d <= deg/2; d++) {
+            possibleFactors.addAll(calculateAllIrrediciblePolynoms(d));
+        }
+
+        for (Short factor : possibleFactors) {
+            while (mod(polynomial, factor) == 0) {
+//                short remainder = mod(polynomial, factor);
+//                if (remainder != 0) {
+//                    break;
+//                }
+
+                factors.add(factor);
+                polynomial = divide(polynomial, factor);
+                deg = degree(polynomial);
+
+                if (polynomial == 1) {
+                    return factors;
+                }
+
+                if (isIrredicible(polynomial, deg)) {
+                    factors.add(polynomial);
+                    return factors;
+                }
+            }
+        }
+        if (polynomial != 1) {//если вышло что-то что не равно 1 то это что-то само является неприводимым
+            factors.add(polynomial);
+        }
+        return factors;
+    }
+
 
 
 
