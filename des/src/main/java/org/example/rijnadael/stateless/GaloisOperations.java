@@ -25,7 +25,7 @@ public interface GaloisOperations {
                 result ^= pol;
             }
             pol = multOnX(pol, mod);
-            a >>= 1;
+            a >>>= 1;
         }
         return result;
     }
@@ -33,12 +33,12 @@ public interface GaloisOperations {
     static byte powMod(byte polynom, int degree, byte mod) {
         if (degree < 0) throw new IllegalArgumentException("degree must be >= 0");
         byte result = 1;
-        while (degree > 0) {
+        while (degree != 0) {
             if ((degree & 1) == 1) {
                 result = multiplyPolymomsByMod(result, polynom, mod);
             }
-            degree >>= 1;
             polynom = multiplyPolymomsByMod(polynom, polynom, mod);
+            degree >>>= 1;
         }
         return result;
     }

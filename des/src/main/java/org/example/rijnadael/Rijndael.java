@@ -6,6 +6,7 @@ import org.example.interfaces.KeyExpansion;
 import org.example.rijnadael.enums.RijndaelBlockLength;
 import org.example.rijnadael.enums.RijndaelKeyLength;
 import org.example.rijnadael.supply.GeneratorSBoxesAndRcon;
+import org.example.rijnadael.supply.PolinomWithGf;
 
 import java.util.Arrays;
 
@@ -16,6 +17,10 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
     private byte[] sBox = null;
     private byte[] invertedSBox = null;
     private int nb = 0;
+    //byte[][] roundKeys = null;
+
+    PolinomWithGf cX = new PolinomWithGf((byte) 0x03, (byte) 0x01, (byte) 0x01, (byte) 0x02);
+    PolinomWithGf dX = new PolinomWithGf((byte) 0x0B, (byte) 0x0D, (byte) 0x09, (byte) 0x0E);
 
     @Getter
     private byte polynomeIrr = 0x1B;
@@ -32,6 +37,7 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
         setKey(key);
         generatorSBoxesAndRcon.setParams(blockLength.getAmountOf4Bytes(), keyLength.getAmountOf4Bytes());
         nb = blockLength.getAmountOf4Bytes();
+        //roundKeys = keyExpansion.generateRoundKeys(key);
     }
 
     public void setPolynomeIrr(byte polynomeIrr) {
@@ -72,10 +78,28 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
         if(isEncrypt) {
             addRoundKey(oneBlock, roundKeys[0]);
             // цикл
+            for (int i = 1; i < roundKeys.length-1; i++ ) {
+                subBytes(oneBlock);
+                shiftRows(oneBlock);
+                mixColumns(oneBlock, true);
+                addRoundKey(oneBlock, roundKeys[i]);
+            }
             // final round
+            subBytes(oneBlock);
+            shiftRows(oneBlock);
+            addRoundKey(oneBlock, roundKeys[roundKeys.length - 1]);
         } else {
             // inverted final round
+            addRoundKey(oneBlock, roundKeys[roundKeys.length - 1]);
+            reversedShiftRows(oneBlock);
+            reverseSubBytes(oneBlock);
             // reverse cycle
+            for (int i = roundKeys.length - 2; i > 0; i--) {
+                addRoundKey(oneBlock, roundKeys[i]);
+                mixColumns(oneBlock, false);
+                reversedShiftRows(oneBlock);
+                reverseSubBytes(oneBlock);
+            }
             addRoundKey(oneBlock, roundKeys[0]);
         }
 
@@ -92,7 +116,7 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
         }
 
         for (int i = 0; i < oneBlock.length; i++) {
-            oneBlock[i] = sBox[oneBlock[i]];
+            oneBlock[i] = (byte) (sBox[oneBlock[i] & 0xFF] &  0xFF);
         }
 
         return oneBlock;
@@ -104,7 +128,7 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
         }
 
         for (int i = 0; i < oneBlock.length; i++) {
-            oneBlock[i] = invertedSBox[oneBlock[i]];
+            oneBlock[i] = (byte) (invertedSBox[oneBlock[i] & 0xFF] & 0xFF);
         }
         return oneBlock;
     }
@@ -121,25 +145,33 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
     }
 
     private void shiftRows(byte[] oneBlock) {
-        byte[] temp = Arrays.copyOf(oneBlock, oneBlock.length);
-
+        byte[] tmp = Arrays.copyOf(oneBlock, oneBlock.length);
         for (int row = 1; row < 4; row++) {
             for (int col = 0; col < nb; col++) {
                 int newPos = (col - row + nb) % nb;
-                oneBlock[row + 4 * newPos] = temp[row + 4 * col];
+                oneBlock[row + 4 * newPos] = (byte) (tmp[row + 4 * col] & 0xFF);
             }
         }
     }
 
-    private void invShiftRows(byte[] oneBlock) {
-        byte[] temp = Arrays.copyOf(oneBlock, oneBlock.length);
-
-
+    private void reversedShiftRows(byte[] oneBlock) {
+        byte[] tmp = Arrays.copyOf(oneBlock, oneBlock.length);
         for (int row = 1; row < 4; row++) {
             for (int col = 0; col < nb; col++) {
                 int newPos = (col + row) % nb;
-                oneBlock[row + 4 * newPos] = temp[row + 4 * col];
+                oneBlock[row + 4 * newPos] = (byte) (tmp[row + 4 * col] & 0xFF);
             }
+        }
+    }
+
+    private void mixColumns(byte[] oneBlock, boolean isEncrypt) {
+        for(int i = 0; i < nb; i++) {
+            PolinomWithGf currentColumnPoly = new PolinomWithGf(oneBlock[4*i + 3], oneBlock[4*i + 2],oneBlock[4*i + 1],oneBlock[4*i]);
+            currentColumnPoly = PolinomWithGf.mult(currentColumnPoly, (isEncrypt) ? cX : dX, polynomeIrr);
+            oneBlock[4*i + 3] = (byte) (currentColumnPoly.d3() & 0xFF);
+            oneBlock[4*i + 2] = (byte) (currentColumnPoly.d2() & 0xFF);
+            oneBlock[4*i + 1] = (byte) (currentColumnPoly.d1() & 0xFF);
+            oneBlock[4*i] = (byte) (currentColumnPoly.d0() & 0xFF);
         }
     }
 

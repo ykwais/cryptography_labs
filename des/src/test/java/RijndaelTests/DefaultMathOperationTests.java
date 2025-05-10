@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 import static org.example.rijnadael.stateless.GaloisBig.factorize;
-import static org.example.rijnadael.stateless.GaloisOperations.factorizePolynomial;
+import static org.example.rijnadael.stateless.GaloisOperations.*;
 import static org.example.utils.ToView.formatShortToBinary;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -86,6 +86,15 @@ class DefaultMathOperationTests {
         for (int i = 0; i < res2.size(); i++) {
             System.out.println(i + 1 + ") " + formatShortToBinary(res2.get(i)));
         }
+    }
+
+    @Test
+    void checkOpposite() {
+        byte start = (byte) 0x02;
+        byte oppo = getInversePolynom(start, (byte) 0x1B);
+        System.out.println(oppo);
+        assertEquals((byte) 0x01, multiplyPolymomsByMod(start, oppo, (byte) 0x1B));
+
     }
 
     @Test

@@ -82,7 +82,7 @@ public class RijndaelKeyExpansionImpl implements KeyExpansion {
         if (a.length != 4) throw new IllegalArgumentException("Arrays length not 4!");
         byte[] sBox = generatorSBoxesAndRcon.getSBox();
         for (int i = 0; i < a.length; ++i) {
-            a[i] = sBox[a[i]];
+            a[i] = sBox[a[i] & 0xFF];
         }
     }
 

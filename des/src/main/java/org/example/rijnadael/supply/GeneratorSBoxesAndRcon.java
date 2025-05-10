@@ -48,12 +48,12 @@ public class GeneratorSBoxesAndRcon {
         byte[] invertedSBox = new byte[256];
 
         for (int i = 0; i < 256; i++) {
-            byte invertedI = getInversePolynom((byte) i, poly);
+            byte invertedI = getInversePolynom((byte) (i & 0xFF), poly);
             byte valueInSbox = multMatrixOnVector(invertedI);
             valueInSbox ^= (byte) 0x63;
 
             sBox[i] = valueInSbox;
-            invertedSBox[valueInSbox] = (byte) i;
+            invertedSBox[valueInSbox & 0xFF] = (byte) i;
         }
         return new Pair<>(sBox, invertedSBox);
     }
