@@ -14,10 +14,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RijndaelPartsTests {
 
+
+
     @Test
     void testSBoxInversionCorrectness() {
         GeneratorSBoxesAndRcon generator = new GeneratorSBoxesAndRcon((byte) 0x1B);
         byte[] sBox = generator.getSBox();
+
+        System.out.println("S-Box in HEX format:");
+        System.out.println("     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F");
+        System.out.println("   -------------------------------------------------");
+        for (int i = 0; i < 16; i++) {
+            System.out.printf("%X | ", i);
+            for (int j = 0; j < 16; j++) {
+                System.out.printf("%02X ", sBox[i * 16 + j] & 0xFF); // Байт в HEX
+            }
+            System.out.println();
+        }
+
         byte[] invSBox = generator.getInvertedSBox();
 
         for (int i = 0; i < 256; i++) {
@@ -91,11 +105,12 @@ class RijndaelPartsTests {
     @Test
     void testEncryptDecrypt() {
         byte[] key = new byte[16];
-        new Random(2).nextBytes(key);
+        new Random(1000).nextBytes(key);
 
         Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, key);
         byte[] block = new byte[16];
-        new Random(3).nextBytes(block);
+        new Random(10000).nextBytes(block);
+
 
         byte[] encrypted = rijndael.encrypt(Arrays.copyOf(block, 16));
         byte[] decrypted = rijndael.decrypt(encrypted);

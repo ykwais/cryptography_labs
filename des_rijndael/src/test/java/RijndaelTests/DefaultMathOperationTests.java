@@ -100,7 +100,7 @@ class DefaultMathOperationTests {
 
     @Test
     void checkAllInverses() {
-        byte poly = (byte) 0x1B; // Неприводимый полином для AES (x^8 + x^4 + x^3 + x + 1)
+        byte poly = (byte) 0x1B;
 
         for (int i = 1; i < 256; i++) {
             byte a = (byte) i;

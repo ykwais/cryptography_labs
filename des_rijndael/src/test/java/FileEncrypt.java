@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-class FileEncryptionTests {
+class FileEncrypt {
     private static final byte[] TEST_KEY_DES = new byte[8];
     private static final byte[] TEST_KEY_DEAL_128 = new byte[16];
     private static final byte[] TEST_KEY_DEAL_192 = new byte[24];

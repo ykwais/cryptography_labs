@@ -17,7 +17,6 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
     private byte[] sBox = null;
     private byte[] invertedSBox = null;
     private int nb = 0;
-    //byte[][] roundKeys = null;
 
     PolinomWithGf cX = new PolinomWithGf((byte) 0x03, (byte) 0x01, (byte) 0x01, (byte) 0x02);
     PolinomWithGf dX = new PolinomWithGf((byte) 0x0B, (byte) 0x0D, (byte) 0x09, (byte) 0x0E);
@@ -37,7 +36,6 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
         setKey(key);
         generatorSBoxesAndRcon.setParams(blockLength.getAmountOf4Bytes(), keyLength.getAmountOf4Bytes());
         nb = blockLength.getAmountOf4Bytes();
-        //roundKeys = keyExpansion.generateRoundKeys(key);
     }
 
     public void setPolynomeIrr(byte polynomeIrr) {
@@ -74,37 +72,38 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
     public byte[] encryptDecryptInner(byte[] oneBlock, byte[] key, boolean isEncrypt) {
 
         byte[][] roundKeys = this.keyExpansion.generateRoundKeys(key);
+        byte[] acc = oneBlock.clone();
 
         if(isEncrypt) {
-            addRoundKey(oneBlock, roundKeys[0]);
+            addRoundKey(acc, roundKeys[0]);
             // цикл
             for (int i = 1; i < roundKeys.length-1; i++ ) {
-                subBytes(oneBlock);
-                shiftRows(oneBlock);
-                mixColumns(oneBlock, true);
-                addRoundKey(oneBlock, roundKeys[i]);
+                subBytes(acc);
+                shiftRows(acc);
+                mixColumns(acc, true);
+                addRoundKey(acc, roundKeys[i]);
             }
             // final round
-            subBytes(oneBlock);
-            shiftRows(oneBlock);
-            addRoundKey(oneBlock, roundKeys[roundKeys.length - 1]);
+            subBytes(acc);
+            shiftRows(acc);
+            addRoundKey(acc, roundKeys[roundKeys.length - 1]);
         } else {
             // inverted final round
-            addRoundKey(oneBlock, roundKeys[roundKeys.length - 1]);
-            reversedShiftRows(oneBlock);
-            reverseSubBytes(oneBlock);
+            addRoundKey(acc, roundKeys[roundKeys.length - 1]);
+            reversedShiftRows(acc);
+            reverseSubBytes(acc);
             // reverse cycle
             for (int i = roundKeys.length - 2; i > 0; i--) {
-                addRoundKey(oneBlock, roundKeys[i]);
-                mixColumns(oneBlock, false);
-                reversedShiftRows(oneBlock);
-                reverseSubBytes(oneBlock);
+                addRoundKey(acc, roundKeys[i]);
+                mixColumns(acc, false);
+                reversedShiftRows(acc);
+                reverseSubBytes(acc);
             }
-            addRoundKey(oneBlock, roundKeys[0]);
+            addRoundKey(acc, roundKeys[0]);
         }
 
 
-        return oneBlock;
+        return acc;
     }
 
 

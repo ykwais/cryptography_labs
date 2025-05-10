@@ -36,11 +36,12 @@ public class GeneratorSBoxesAndRcon {
 
 
     public static byte leftCycleShift(byte a, int shift) {
-        return (byte) ( (a << shift) | (a >>> (8 - shift)));
+        int v = a & 0xFF;
+        return (byte)(((v << shift) | (v >>> (8 - shift))) & 0xFF);
     }
 
     public static byte multMatrixOnVector(byte invertedI) {
-        return (byte)(invertedI ^ (leftCycleShift(invertedI, 4)) ^ (leftCycleShift(invertedI, 3)) ^ (leftCycleShift(invertedI, 2)) ^ (leftCycleShift(invertedI, 1)));
+        return (byte)((invertedI & 0xFF) ^ (leftCycleShift(invertedI, 4) & 0xFF) ^ (leftCycleShift(invertedI, 3) & 0xFF) ^ (leftCycleShift(invertedI, 2) & 0xFF) ^ (leftCycleShift(invertedI, 1)& 0xFF));
     }
 
     private Pair<byte[], byte[]> collectSBoxes() {
@@ -48,27 +49,15 @@ public class GeneratorSBoxesAndRcon {
         byte[] invertedSBox = new byte[256];
 
         for (int i = 0; i < 256; i++) {
-//            byte invertedI = getInversePolynom((byte) (i & 0xFF), poly);
-//            byte valueInSbox = multMatrixOnVector(invertedI);
-//            valueInSbox ^= (byte) 0x63;
-//
-//            sBox[i] = (byte) (valueInSbox & 0xFF);
-//            invertedSBox[valueInSbox & 0xFF] = (byte) i;
-            byte inv;
-            if (i == 0) {
-                inv = 0;
-            } else {
-                inv = getInversePolynom((byte) i, poly);
-            }
-
-            byte valueInSbox = (byte) (multMatrixOnVector(inv) ^ (byte)0x63);
-            int sValue = valueInSbox & 0xFF;
-
-            sBox[i] = (byte) sValue;
-            invertedSBox[sValue] = (byte) i;
+            byte inv = (i == 0) ? 0 : getInversePolynom((byte) i, poly);
+            byte affineTransformed = multMatrixOnVector(inv);
+            byte sBoxValue = (byte) ((affineTransformed ^ 0x63) & 0xFF);
+            sBox[i] = sBoxValue;
+            invertedSBox[sBoxValue & 0xFF] = (byte) i;
         }
         return new Pair<>(sBox, invertedSBox);
     }
+
 
     public byte[] getSBox() {
         return getSBoxAndInvertedSBox().getKey().clone();

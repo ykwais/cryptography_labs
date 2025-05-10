@@ -8,6 +8,9 @@ import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
 import org.example.deal.Deal;
 import org.example.interfaces.EncryptorDecryptorSymmetric;
+import org.example.rijnadael.Rijndael;
+import org.example.rijnadael.enums.RijndaelBlockLength;
+import org.example.rijnadael.enums.RijndaelKeyLength;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,7 +47,8 @@ public class test {
 
                 //testAlgorithm(TypeAlgorithm.DES, DES_KEY, null, inputFile);
 
-                EncryptorDecryptorSymmetric algo = new Deal(BitsInKeysOfDeal.BIT_128, DES_KEY, DEAL_KEY);
+                //EncryptorDecryptorSymmetric algo = new Deal(BitsInKeysOfDeal.BIT_128, DES_KEY, DEAL_KEY);
+                EncryptorDecryptorSymmetric algo = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, DEAL_KEY);
                 testAlgorithm(algo, inputFile);
 
             } catch (Exception e) {

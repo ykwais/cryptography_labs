@@ -3,7 +3,6 @@ package RijndaelTests;
 import org.example.constants.CipherMode;
 import org.example.constants.PaddingMode;
 import org.example.context.Context;
-import org.example.des.Des;
 import org.example.rijnadael.Rijndael;
 import org.example.rijnadael.enums.RijndaelBlockLength;
 import org.example.rijnadael.enums.RijndaelKeyLength;
@@ -14,14 +13,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
-import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-class RijndaelContextTests {
+class RijndaelContextWeakTests {
 
     private static final byte[] TEST_KEY = new byte[16];
-    private static final byte[] TEST_IV = new byte[16];
+    private static final byte[] TEST_IV = new byte[24];
     private static final Integer DELTA = 53;
     private final SecureRandom random = new SecureRandom();
 
@@ -32,15 +31,15 @@ class RijndaelContextTests {
             throws IOException {
         byte[] originalData = new byte[dataLength];
 
-        //random.nextBytes(originalData);
-        //originalData[dataLength-1] = (byte) 0x01;
+        random.nextBytes(originalData);
+        originalData[dataLength-1] = (byte) 0x01;
 
-        for (int i = 0; i < dataLength; i++) {
-            originalData[i] = (byte) i;
-        }
+//        for (int i = 0; i < dataLength; i++) {
+//            originalData[i] = (byte) i;
+//        }
 
         Context context = new Context(
-                new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, TEST_KEY),
+                new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_192, TEST_KEY),
                 cipherMode,
                 paddingMode,
                 TEST_IV,
@@ -65,8 +64,30 @@ class RijndaelContextTests {
 
     @Test
     void shouldHandleExactBlockSize() throws IOException {
-        //testModeCombination(CipherMode.CBC, PaddingMode.PKCS7, 8);
+        testModeCombination(CipherMode.CBC, PaddingMode.PKCS7, 8);
         testModeCombination(CipherMode.PCBC, PaddingMode.PKCS7, 16);
-        //testModeCombination(CipherMode.CBC, PaddingMode.PKCS7, 24);
+        testModeCombination(CipherMode.CBC, PaddingMode.PKCS7, 24);
+    }
+
+
+    @Test
+    void allModesAndPaddingCombinations_ShouldHandleVariousLengths() {
+        int[] lengths = {1, 7, 8, 9, 15, 16, 25, 511, 512, 1023, 4097, 8100, 80000};
+
+        for (CipherMode cipherMode : CipherMode.values()) {
+            for (PaddingMode paddingMode : PaddingMode.values()) { // крч может не совпадать Zeros так как удалит лишние нули, но тест с длиной 1 проходит так как затираем не больше 7 байтов
+                System.out.println("Testing cipher mode: " + cipherMode + " with padding: " + paddingMode);
+
+                for (int len : lengths) {
+                    try {
+                        System.out.println("  Length: " + len);
+                        testModeCombination(cipherMode, paddingMode, len);
+                    } catch (Exception e) {
+                        fail("Failed for " + cipherMode + "/" + paddingMode +
+                                " with length " + len + ": " + e.getMessage());
+                    }
+                }
+            }
+        }
     }
 }

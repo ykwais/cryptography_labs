@@ -9,7 +9,6 @@ public interface GaloisOperations {
     }
 
     static byte multOnX(byte number, byte mod) {
-        //TODO проверка на неприводимый полином
 
         if ((number & 0x80) ==  0x80) {
             return (byte) ((number << 1) ^ (mod & 0xFF) );
@@ -18,7 +17,6 @@ public interface GaloisOperations {
     }
 
     static byte multiplyPolymomsByMod(byte pol, byte a, byte mod) {
-        //TODO проверка на неприводимый полином
         byte result = 0;
         for (int i = 0; i < 8; i++) {
             if ((a & 0x01) == 0x01) {
@@ -44,7 +42,7 @@ public interface GaloisOperations {
     }
 
     static byte getInversePolynom(byte polynom, byte mod) {
-        //TODO проверка на неприводимость
+
         return powMod(polynom, 254, mod);
     }
 
