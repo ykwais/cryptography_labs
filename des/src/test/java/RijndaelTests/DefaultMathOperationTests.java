@@ -8,6 +8,7 @@ import java.util.List;
 
 import static org.example.rijnadael.stateless.GaloisBig.factorize;
 import static org.example.rijnadael.stateless.GaloisOperations.*;
+import static org.example.rijnadael.supply.GeneratorSBoxesAndRcon.multMatrixOnVector;
 import static org.example.utils.ToView.formatShortToBinary;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -96,6 +97,36 @@ class DefaultMathOperationTests {
         assertEquals((byte) 0x01, multiplyPolymomsByMod(start, oppo, (byte) 0x1B));
 
     }
+
+    @Test
+    void checkAllInverses() {
+        byte poly = (byte) 0x1B; // Неприводимый полином для AES (x^8 + x^4 + x^3 + x + 1)
+
+        for (int i = 1; i < 256; i++) {
+            byte a = (byte) i;
+            byte inv = getInversePolynom(a, poly);
+
+            byte product = multiplyPolymomsByMod(a, inv, poly);
+
+            assertEquals((byte) 0x01, product,
+                    String.format("Inverse error: %02X * %02X mod %02X = %02X", a & 0xFF, inv & 0xFF, poly & 0xFF, product & 0xFF));
+        }
+    }
+
+
+    @Test
+    void testAffineTransformationExample() {
+        byte input = 0x00;
+        byte expected = 0x63; // по стандарту AES
+
+        byte actual = (byte) (multMatrixOnVector(input) ^ (byte) 0x63);
+
+        assertEquals(expected, actual, String.format("Affine error: expected 0x%02X, got 0x%02X", expected, actual));
+    }
+
+
+
+
 
     @Test
     void testFactorizationShort() {

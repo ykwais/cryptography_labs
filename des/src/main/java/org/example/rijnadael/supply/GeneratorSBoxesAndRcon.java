@@ -35,11 +35,11 @@ public class GeneratorSBoxesAndRcon {
 
 
 
-    private byte leftCycleShift(byte a, int shift) {
+    public static byte leftCycleShift(byte a, int shift) {
         return (byte) ( (a << shift) | (a >>> (8 - shift)));
     }
 
-    private byte multMatrixOnVector(byte invertedI) {
+    public static byte multMatrixOnVector(byte invertedI) {
         return (byte)(invertedI ^ (leftCycleShift(invertedI, 4)) ^ (leftCycleShift(invertedI, 3)) ^ (leftCycleShift(invertedI, 2)) ^ (leftCycleShift(invertedI, 1)));
     }
 
@@ -48,12 +48,24 @@ public class GeneratorSBoxesAndRcon {
         byte[] invertedSBox = new byte[256];
 
         for (int i = 0; i < 256; i++) {
-            byte invertedI = getInversePolynom((byte) (i & 0xFF), poly);
-            byte valueInSbox = multMatrixOnVector(invertedI);
-            valueInSbox ^= (byte) 0x63;
+//            byte invertedI = getInversePolynom((byte) (i & 0xFF), poly);
+//            byte valueInSbox = multMatrixOnVector(invertedI);
+//            valueInSbox ^= (byte) 0x63;
+//
+//            sBox[i] = (byte) (valueInSbox & 0xFF);
+//            invertedSBox[valueInSbox & 0xFF] = (byte) i;
+            byte inv;
+            if (i == 0) {
+                inv = 0;
+            } else {
+                inv = getInversePolynom((byte) i, poly);
+            }
 
-            sBox[i] = valueInSbox;
-            invertedSBox[valueInSbox & 0xFF] = (byte) i;
+            byte valueInSbox = (byte) (multMatrixOnVector(inv) ^ (byte)0x63);
+            int sValue = valueInSbox & 0xFF;
+
+            sBox[i] = (byte) sValue;
+            invertedSBox[sValue] = (byte) i;
         }
         return new Pair<>(sBox, invertedSBox);
     }
@@ -64,6 +76,19 @@ public class GeneratorSBoxesAndRcon {
 
     public byte[] getInvertedSBox() {
         return getSBoxAndInvertedSBox().getValue().clone();
+    }
+
+    private Pair<byte[], byte[]> getSBoxAndInvertedSBox() {
+        Pair<byte[], byte[]> result = sboxes;
+        if (result == null) {
+            synchronized (this) {
+                result = sboxes;
+                if (result == null) {
+                    sboxes = result = collectSBoxes();
+                }
+            }
+        }
+        return result;
     }
 
     public byte[][] getRcon() {
@@ -102,16 +127,5 @@ public class GeneratorSBoxesAndRcon {
     }
 
 
-    private Pair<byte[], byte[]> getSBoxAndInvertedSBox() {
-        Pair<byte[], byte[]> result = sboxes;
-        if (result == null) {
-            synchronized (this) {
-                result = sboxes;
-                if (result == null) {
-                    sboxes = result = collectSBoxes();
-                }
-            }
-        }
-        return result;
-    }
+
 }

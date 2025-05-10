@@ -109,33 +109,30 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
 
 
 
-    private byte[] subBytes(byte[] oneBlock) {
+    public void subBytes(byte[] oneBlock) {
 
         if (sBox == null) {
             sBox = generatorSBoxesAndRcon.getSBox();
         }
 
         for (int i = 0; i < oneBlock.length; i++) {
-            oneBlock[i] = (byte) (sBox[oneBlock[i] & 0xFF] &  0xFF);
+            oneBlock[i] =  (sBox[oneBlock[i] & 0xFF]);
         }
-
-        return oneBlock;
     }
 
-    private byte[] reverseSubBytes(byte[] oneBlock) {
+    public void reverseSubBytes(byte[] oneBlock) {
         if (invertedSBox == null) {
-            invertedSBox = generatorSBoxesAndRcon.getSBox();
+            invertedSBox = generatorSBoxesAndRcon.getInvertedSBox();
         }
 
         for (int i = 0; i < oneBlock.length; i++) {
-            oneBlock[i] = (byte) (invertedSBox[oneBlock[i] & 0xFF] & 0xFF);
+            oneBlock[i] = (invertedSBox[oneBlock[i] & 0xFF]);
         }
-        return oneBlock;
     }
 
 
 
-    private void addRoundKey(byte[] a, byte[] b) {
+    public void addRoundKey(byte[] a, byte[] b) {
         if (a.length != b.length) {
             throw new IllegalArgumentException("Arrays have different lengths");
         }
@@ -144,7 +141,7 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
         }
     }
 
-    private void shiftRows(byte[] oneBlock) {
+    public void shiftRows(byte[] oneBlock) {
         byte[] tmp = Arrays.copyOf(oneBlock, oneBlock.length);
         for (int row = 1; row < 4; row++) {
             for (int col = 0; col < nb; col++) {
@@ -154,7 +151,7 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
         }
     }
 
-    private void reversedShiftRows(byte[] oneBlock) {
+    public void reversedShiftRows(byte[] oneBlock) {
         byte[] tmp = Arrays.copyOf(oneBlock, oneBlock.length);
         for (int row = 1; row < 4; row++) {
             for (int col = 0; col < nb; col++) {
@@ -164,7 +161,7 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
         }
     }
 
-    private void mixColumns(byte[] oneBlock, boolean isEncrypt) {
+    public void mixColumns(byte[] oneBlock, boolean isEncrypt) {
         for(int i = 0; i < nb; i++) {
             PolinomWithGf currentColumnPoly = new PolinomWithGf(oneBlock[4*i + 3], oneBlock[4*i + 2],oneBlock[4*i + 1],oneBlock[4*i]);
             currentColumnPoly = PolinomWithGf.mult(currentColumnPoly, (isEncrypt) ? cX : dX, polynomeIrr);
