@@ -11,7 +11,7 @@ import org.example.rijnadael.supply.PolinomWithGf;
 import java.util.Arrays;
 
 public class Rijndael implements EncryptorDecryptorSymmetric {
-    private byte[] key;
+    private byte[] key = null;
     private final KeyExpansion keyExpansion;
     private final int blockSize;
     private byte[] sBox = null;
@@ -47,6 +47,9 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
 
     @Override
     public void setKey(byte[] symmetricKey) {
+        if (this.key != null && key.length != symmetricKey.length) {
+            throw new IllegalArgumentException("The symmetric key length does not match with the key length");
+        }
         this.key = symmetricKey;
     }
 
