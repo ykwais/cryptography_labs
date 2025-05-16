@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface GaloisOperations {
+    List<Byte> irrediciblePoly8Degree = irrediciblePolynoms8Degree();
+
     static byte addPolys(byte a, byte b) {
         return (byte) (a ^ b);
     }
 
     static byte multOnX(byte number, byte mod) {
+        if (!isByteIrredicible(mod)) throw new IllegalArgumentException("mod must be irredicible");
 
         if ((number & 0x80) ==  0x80) {
             return (byte) ((number << 1) ^ (mod & 0xFF) );
@@ -17,6 +20,7 @@ public interface GaloisOperations {
     }
 
     static byte multiplyPolymomsByMod(byte pol, byte a, byte mod) {
+        if (!isByteIrredicible(mod)) throw new IllegalArgumentException("mod must be irredicible");
         byte result = 0;
         for (int i = 0; i < 8; i++) {
             if ((a & 0x01) == 0x01) {
@@ -29,6 +33,7 @@ public interface GaloisOperations {
     }
 
     static byte powMod(byte polynom, int degree, byte mod) {
+        if (!isByteIrredicible(mod)) throw new IllegalArgumentException("mod must be irredicible");
         if (degree < 0) throw new IllegalArgumentException("degree must be >= 0");
         byte result = 1;
         while (degree != 0) {
@@ -42,7 +47,7 @@ public interface GaloisOperations {
     }
 
     static byte getInversePolynom(byte polynom, byte mod) {
-
+        if (!isByteIrredicible(mod)) throw new IllegalArgumentException("mod must be irredicible");
         return powMod(polynom, 254, mod);
     }
 
@@ -98,6 +103,19 @@ public interface GaloisOperations {
             }
         }
         return result;
+    }
+
+    static List<Byte> irrediciblePolynoms8Degree() {
+        List<Short> polynoms = calculateAllIrrediciblePolynoms(8);
+        List<Byte> result = new ArrayList<>();
+        for (Short polynom : polynoms) {
+            result.add((byte) (polynom & 0xFF));
+        }
+        return result;
+    }
+
+    static boolean isByteIrredicible(byte poly) {
+        return irrediciblePoly8Degree.contains(poly);
     }
 
     static List<Short> factorizePolynomial(short polynomial) {

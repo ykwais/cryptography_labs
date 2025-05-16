@@ -48,7 +48,7 @@ public class test {
                 //testAlgorithm(TypeAlgorithm.DES, DES_KEY, null, inputFile);
 
                 //EncryptorDecryptorSymmetric algo = new Deal(BitsInKeysOfDeal.BIT_128, DES_KEY, DEAL_KEY);
-                EncryptorDecryptorSymmetric algo = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, DEAL_KEY);
+                EncryptorDecryptorSymmetric algo = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, DEAL_KEY, (byte) 0x1B);
                 testAlgorithm(algo, inputFile);
 
             } catch (Exception e) {

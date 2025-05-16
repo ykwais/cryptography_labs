@@ -44,7 +44,7 @@ class RijndaelStrongTest {
         originalData[dataLength - 1] = 0x01;
 
         Context context = new Context(
-                new Rijndael(keyLength, blockLength, key),
+                new Rijndael(keyLength, blockLength, key, (byte) 0x1B),
                 cipherMode,
                 paddingMode,
                 iv,

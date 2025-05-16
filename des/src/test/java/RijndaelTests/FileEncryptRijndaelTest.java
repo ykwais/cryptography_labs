@@ -92,7 +92,7 @@ class FileEncryptRijndaelTest {
                     case KEY_256 -> KEY_256;
                 };
 
-                Rijndael rijndael = new Rijndael(keyLength, blockLength, key);
+                Rijndael rijndael = new Rijndael(keyLength, blockLength, key, (byte) 0x1B);
 
                 for (CipherMode mode : cipherModes) {
                     if (!mode.equals(CipherMode.RD)) {

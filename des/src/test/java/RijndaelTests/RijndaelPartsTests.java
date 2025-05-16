@@ -44,7 +44,7 @@ class RijndaelPartsTests {
 
     @Test
     void testSubBytesAndReverse() {
-        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, new byte[16]);
+        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, new byte[16], (byte) 0x1B);
         byte[] original = new byte[16];
         new Random(0).nextBytes(original);
 
@@ -57,7 +57,7 @@ class RijndaelPartsTests {
 
     @Test
     void testShiftRowsAndReverse() {
-        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, new byte[16]);
+        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, new byte[16], (byte) 0x1B);
         byte[] block = new byte[16];
         for (int i = 0; i < block.length; i++) {
             block[i] = (byte) i;
@@ -72,7 +72,7 @@ class RijndaelPartsTests {
 
     @Test
     void testAddRoundKey() {
-        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, new byte[16]);
+        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, new byte[16], (byte) 0x1B);
         byte[] a = new byte[16];
         byte[] b = new byte[16];
         for (int i = 0; i < 16; i++) {
@@ -90,7 +90,7 @@ class RijndaelPartsTests {
 
     @Test
     void testMixColumnsAndInverse() {
-        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, new byte[16]);
+        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, new byte[16],(byte) 0x1B);
         byte[] original = new byte[16];
         new Random(1).nextBytes(original);
 
@@ -107,7 +107,7 @@ class RijndaelPartsTests {
         byte[] key = new byte[16];
         new Random(1000).nextBytes(key);
 
-        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, key);
+        Rijndael rijndael = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, key,(byte) 0x1B);
         byte[] block = new byte[16];
         new Random(10000).nextBytes(block);
 

@@ -39,7 +39,7 @@ class RijndaelContextWeakTests {
 //        }
 
         Context context = new Context(
-                new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_192, TEST_KEY),
+                new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_192, TEST_KEY, (byte) 0x1B),
                 cipherMode,
                 paddingMode,
                 TEST_IV,

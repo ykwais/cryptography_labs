@@ -22,12 +22,14 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
     PolinomWithGf dX = new PolinomWithGf((byte) 0x0B, (byte) 0x0D, (byte) 0x09, (byte) 0x0E);
 
     @Getter
-    private byte polynomeIrr = 0x1B;
+    private final byte polynomeIrr;
 
-    private final GeneratorSBoxesAndRcon generatorSBoxesAndRcon = new GeneratorSBoxesAndRcon(polynomeIrr);
+    private final GeneratorSBoxesAndRcon generatorSBoxesAndRcon;
 
 
-    public Rijndael(RijndaelKeyLength keyLength, RijndaelBlockLength blockLength, byte[] key) {
+    public Rijndael(RijndaelKeyLength keyLength, RijndaelBlockLength blockLength, byte[] key, byte poly) {
+        polynomeIrr = poly;
+        generatorSBoxesAndRcon = new GeneratorSBoxesAndRcon(polynomeIrr);
         keyExpansion = new RijndaelKeyExpansionImpl(keyLength, blockLength, generatorSBoxesAndRcon);
         blockSize = blockLength.getAmountOf4Bytes() * 4;
         if(!checkAmountBytesInKey(key, keyLength)) {
@@ -38,12 +40,12 @@ public class Rijndael implements EncryptorDecryptorSymmetric {
         nb = blockLength.getAmountOf4Bytes();
     }
 
-    public void setPolynomeIrr(byte polynomeIrr) {
-        this.polynomeIrr = polynomeIrr;
-        sBox = null;
-        invertedSBox = null;
-        generatorSBoxesAndRcon.setPoly(polynomeIrr);
-    }
+//    public void setPolynomeIrr(byte polynomeIrr) {
+//        this.polynomeIrr = polynomeIrr;
+//        sBox = null;
+//        invertedSBox = null;
+//        generatorSBoxesAndRcon.setPoly(polynomeIrr);
+//    }
 
     @Override
     public void setKey(byte[] symmetricKey) {
