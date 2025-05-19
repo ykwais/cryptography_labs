@@ -21,13 +21,14 @@ class EncryptDecryptOneBlockTests {
         EncryptorDecryptorSymmetric cipher = new RC6(RC6KeyLength.KEY_128, key);
         byte[] plain = new byte[16];
         for (int i = 0; i < 16; i++) {
-            plain[i] = 0x00;
+            plain[i] = 15;
         }
+        plain[0] = 1;
         byte[] cipherText = cipher.encrypt(plain);
         log.info("cipherText: {}", bytesToHex(cipherText));
         byte[] text = cipher.decrypt(cipherText);
         log.info("text: {}", bytesToHex(text));
-        assertEquals(text, plain);
+        assertArrayEquals(text, plain);
     }
 
     @Test
@@ -60,7 +61,7 @@ class EncryptDecryptOneBlockTests {
         assertArrayEquals(expectedCipher, cipherText);
         byte[] text = cipher.decrypt(cipherText);
         log.info("text: {}", bytesToHex(text));
-        assertEquals(text, plain);
+        assertArrayEquals(text, plain);
     }
 
     @Test
@@ -88,7 +89,7 @@ class EncryptDecryptOneBlockTests {
         assertArrayEquals(expectedCipher, cipherText);
         byte[] text = cipher.decrypt(cipherText);
         log.info("text: {}", bytesToHex(text));
-        assertEquals(text, plain);
+        assertArrayEquals(text, plain);
     }
 
     @Test

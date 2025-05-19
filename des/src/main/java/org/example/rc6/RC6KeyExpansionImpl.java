@@ -9,19 +9,11 @@ import java.nio.ByteOrder;
 @Slf4j
 public class RC6KeyExpansionImpl implements KeyExpansion {
 
-    private final int amountRounds;
+    private static final int AMOUNT_ROUNDS = 20;
     private static final int W = 32;
     private static final int P = 0xB7E15163;
     private static final int Q = 0x9E3779B9;
 
-
-    public RC6KeyExpansionImpl() {
-        this.amountRounds = 20;
-    }
-
-    public RC6KeyExpansionImpl(int amountRounds) {
-        this.amountRounds = amountRounds;
-    }
 
     @Override
     public byte[][] generateRoundKeys(byte[] key) {
@@ -38,7 +30,7 @@ public class RC6KeyExpansionImpl implements KeyExpansion {
             l[i] = buffer.getInt();
         }
 
-        int t = 2 * amountRounds + 4;
+        int t = 2 * AMOUNT_ROUNDS + 4;
         int[] s = new int[t];
         s[0] = P;
         for (int i = 1; i < s.length; i++) {
@@ -56,8 +48,6 @@ public class RC6KeyExpansionImpl implements KeyExpansion {
             i = (int)((Integer.toUnsignedLong(i) + 1) % Integer.toUnsignedLong(t));
             j = (int)((Integer.toUnsignedLong(j) + 1) % Integer.toUnsignedLong(c));
         }
-
-        log.info("s original: {}", s);
 
         byte[][] result = new byte[s.length][4];
         ByteBuffer bufferTmp = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
