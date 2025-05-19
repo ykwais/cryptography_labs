@@ -10,9 +10,9 @@ import java.nio.ByteOrder;
 public class RC6KeyExpansionImpl implements KeyExpansion {
 
     private final int amountRounds;
-    private final int w = 32;
-    private final int P = 0xB7E15163;
-    private final int Q = 0x9E3779B9;
+    private static final int W = 32;
+    private static final int P = 0xB7E15163;
+    private static final int Q = 0x9E3779B9;
 
 
     public RC6KeyExpansionImpl() {
@@ -27,43 +27,43 @@ public class RC6KeyExpansionImpl implements KeyExpansion {
     public byte[][] generateRoundKeys(byte[] key) {
 
         int b = key.length;
-        int c = (b == 0) ? 1 : ((8 * b ) / w);
+        int c = (b == 0) ? 1 : ((8 * b ) / W);
 
-        int[] L = new int[c];
+        int[] l = new int[c];
 
         ByteBuffer buffer = ByteBuffer.wrap(key);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-        for (int i = 0; i < L.length; i++) {
-            L[i] = buffer.getInt();
+        for (int i = 0; i < l.length; i++) {
+            l[i] = buffer.getInt();
         }
 
         int t = 2 * amountRounds + 4;
-        int[] S = new int[t];
-        S[0] = P;
-        for (int i = 1; i < S.length; i++) {
-            S[i] = (int) (Integer.toUnsignedLong(S[i - 1]) + Integer.toUnsignedLong(Q));
+        int[] s = new int[t];
+        s[0] = P;
+        for (int i = 1; i < s.length; i++) {
+            s[i] = (int) (Integer.toUnsignedLong(s[i - 1]) + Integer.toUnsignedLong(Q));
         }
 
-        int A = 0;
-        int B = 0;
+        int aWord = 0;
+        int bWord = 0;
         int i = 0;
         int j = 0;
         int v = Math.max(t, c) * 3;
         for (int k = 0; k < v; k++) {
-            A = S[i] = LeftShift((int) (Integer.toUnsignedLong(S[i]) + Integer.toUnsignedLong(A)  + Integer.toUnsignedLong(B)), 3);
-            B = L[j] = LeftShift((int) (Integer.toUnsignedLong(L[j]) + Integer.toUnsignedLong(A)  + Integer.toUnsignedLong(B)), (int) (Integer.toUnsignedLong(A)  + Integer.toUnsignedLong(B)));
+            aWord = s[i] = leftShift((int) (Integer.toUnsignedLong(s[i]) + Integer.toUnsignedLong(aWord)  + Integer.toUnsignedLong(bWord)), 3);
+            bWord = l[j] = leftShift((int) (Integer.toUnsignedLong(l[j]) + Integer.toUnsignedLong(aWord)  + Integer.toUnsignedLong(bWord)), (int) (Integer.toUnsignedLong(aWord)  + Integer.toUnsignedLong(bWord)));
             i = (int)((Integer.toUnsignedLong(i) + 1) % Integer.toUnsignedLong(t));
             j = (int)((Integer.toUnsignedLong(j) + 1) % Integer.toUnsignedLong(c));
         }
 
-        log.info("s original: {}", S);
+        log.info("s original: {}", s);
 
-        byte[][] result = new byte[S.length][4];
+        byte[][] result = new byte[s.length][4];
         ByteBuffer bufferTmp = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
 
-        for (int k = 0; k < S.length; k++) {
-            bufferTmp.putInt(S[k]);
+        for (int k = 0; k < s.length; k++) {
+            bufferTmp.putInt(s[k]);
             result[k] = bufferTmp.array().clone();
             bufferTmp.clear();
         }
@@ -71,7 +71,7 @@ public class RC6KeyExpansionImpl implements KeyExpansion {
         return result;
     }
 
-    private int LeftShift(int x, int shift) {
+    private int leftShift(int x, int shift) {
         return (x << shift) | ( x >>> (32 - shift));
     }
 }

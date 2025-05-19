@@ -13,11 +13,9 @@ import static org.example.utils.ToView.bytesToHex;
 @Slf4j
 public class RC6 implements EncryptorDecryptorSymmetric {
 
-    private final int blockSize = 16;
-    private final int wordSizeBits = 32;
+    private static final int BLOCK_SIZE = 16;
     private byte[] key = null;
     private final KeyExpansion keyExpansion;
-    private byte[][] roundKeys = null;
     int[] s = null;
 
     public RC6(RC6KeyLength rc6KeyLength, byte[] key) {
@@ -26,20 +24,6 @@ public class RC6 implements EncryptorDecryptorSymmetric {
             throw new IllegalArgumentException("Key is not a valid RC6 key");
         }
         setKey(key);
-        this.roundKeys = this.keyExpansion.generateRoundKeys(this.key);
-        ByteBuffer buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
-        s = new int[roundKeys.length];
-
-        for (int i = 0; i < roundKeys.length; i++) {
-            buffer.put(roundKeys[i]);
-            buffer.flip();
-            s[i] = buffer.getInt();
-            buffer.clear();
-        }
-
-        log.info("            S after repair: {}", s);
-
-
     }
 
     private boolean checkAmountBytesInKey(byte[] key, RC6KeyLength keyLength) {
@@ -53,73 +37,10 @@ public class RC6 implements EncryptorDecryptorSymmetric {
             throw new IllegalArgumentException("Key length does not match symmetric key length");
         }
         this.key = symmetricKey;
-    }
 
-    @Override
-    public byte[] encrypt(byte[] oneBlock) {
-
-        log.info("orignal oneBlock: {}", bytesToHex(oneBlock));
-        //byte[][] roundKeys = this.keyExpansion.generateRoundKeys(key);
+        byte[][] roundKeys = this.keyExpansion.generateRoundKeys(this.key);
         ByteBuffer buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
-
-        int[] parts = new int[4];
-
-        for (int i = 0; i < 4; i++) {
-            byte[] oneWord = new byte[blockSize / 4];
-            System.arraycopy(oneBlock, i, oneWord, 0, oneWord.length);
-            buffer.put(oneWord);
-            buffer.flip();
-            parts[i] = buffer.getInt();
-            buffer.clear();
-        }
-
-        int a = parts[0];
-        int b = parts[1];
-        int c = parts[2];
-        int d = parts[3];
-
-
-        //pre-whitening
-        b =(int) (Integer.toUnsignedLong(b) + Integer.toUnsignedLong(s[0]));
-        d = (int) (Integer.toUnsignedLong(d) + Integer.toUnsignedLong(s[1]));
-
-        int amountRounds = (s.length - 4) / 2;
-
-        for (int i = 1; i <= amountRounds; i++) {
-            int t = leftShift( (int) (Integer.toUnsignedLong(b) * (Integer.toUnsignedLong(b) * 2  + 1 )), 5 );//подумать над переполненем лонга
-            int u = leftShift((int) (Integer.toUnsignedLong(d) * (2 * Integer.toUnsignedLong(d) + 1)),5);
-            a = (int) (Integer.toUnsignedLong(leftShift((int) (Integer.toUnsignedLong(a) ^ Integer.toUnsignedLong(t)), u) ) + Integer.toUnsignedLong(s[2*i]));
-            c = (int) (Integer.toUnsignedLong(leftShift((int) (Integer.toUnsignedLong(c) ^ Integer.toUnsignedLong(u)), t) ) + Integer.toUnsignedLong(s[2*i + 1]));
-
-            int tmp = a;
-            a = b;
-            b = c;
-            c = d;
-            d = tmp;
-        }
-
-        //post-whitening
-        a = (int) ( Integer.toUnsignedLong(a) + Integer.toUnsignedLong(s[2*amountRounds + 2]));
-        c = (int) (Integer.toUnsignedLong(c) + Integer.toUnsignedLong(s[2*amountRounds + 3]));
-
-        parts[0] = a;
-        parts[1] = b;
-        parts[2] = c;
-        parts[3] = d;
-
-        for (int i = 0; i < 4; i++) {
-            buffer.putInt(parts[i]);
-            System.arraycopy(buffer.array(), 0, oneBlock, i, buffer.array().length);
-            buffer.clear();
-        }
-        return oneBlock;
-    }
-
-    @Override
-    public byte[] decrypt(byte[] oneBlock) {
-        //byte[][] roundKeys = this.keyExpansion.generateRoundKeys(key);
-        ByteBuffer buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
-        //int[] s = new int[roundKeys.length];
+        s = new int[roundKeys.length];
 
         for (int i = 0; i < roundKeys.length; i++) {
             buffer.put(roundKeys[i]);
@@ -128,11 +49,136 @@ public class RC6 implements EncryptorDecryptorSymmetric {
             buffer.clear();
         }
 
+        log.info("            S after repair: {}", s);
+    }
+
+    @Override
+    public byte[] encrypt(byte[] oneBlock) {
+        return encryptDecryptInner(oneBlock, true);
+//        log.info("orignal oneBlock: {}", bytesToHex(oneBlock));
+//        ByteBuffer buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
+//
+//        int[] parts = new int[4];
+//
+//        for (int i = 0; i < 4; i++) {
+//            byte[] oneWord = new byte[BLOCK_SIZE / 4];
+//            System.arraycopy(oneBlock, i*4, oneWord, 0, oneWord.length);
+//            buffer.put(oneWord);
+//            buffer.flip();
+//            parts[i] = buffer.getInt();
+//            buffer.clear();
+//        }
+//
+//        int a = parts[0];
+//        int b = parts[1];
+//        int c = parts[2];
+//        int d = parts[3];
+//
+//
+//        //pre-whitening
+//        b =(int) (Integer.toUnsignedLong(b) + Integer.toUnsignedLong(s[0]));
+//        d = (int) (Integer.toUnsignedLong(d) + Integer.toUnsignedLong(s[1]));
+//
+//        int amountRounds = (s.length - 4) / 2;
+//
+//        for (int i = 1; i <= amountRounds; i++) {
+//            int t = leftShift( (int) (Integer.toUnsignedLong(b) * (Integer.toUnsignedLong(b) * 2  + 1 )), 5 );
+//            int u = leftShift((int) (Integer.toUnsignedLong(d) * (2 * Integer.toUnsignedLong(d) + 1)),5);
+//            a = (int) (Integer.toUnsignedLong( leftShift((int) (Integer.toUnsignedLong(a) ^ Integer.toUnsignedLong(t)), u) ) + Integer.toUnsignedLong(s[2*i]));
+//            c = (int) (Integer.toUnsignedLong( leftShift((int) (Integer.toUnsignedLong(c) ^ Integer.toUnsignedLong(u)), t) ) + Integer.toUnsignedLong(s[2*i + 1]));
+//
+//            int tmp = a;
+//            a = b;
+//            b = c;
+//            c = d;
+//            d = tmp;
+//        }
+//
+//        //post-whitening
+//        a = (int) ( Integer.toUnsignedLong(a) + Integer.toUnsignedLong(s[2*amountRounds + 2]));
+//        c = (int) (Integer.toUnsignedLong(c) + Integer.toUnsignedLong(s[2*amountRounds + 3]));
+//
+//        parts[0] = a;
+//        parts[1] = b;
+//        parts[2] = c;
+//        parts[3] = d;
+//
+//        for (int i = 0; i < 4; i++) {
+//            buffer.putInt(parts[i]);
+//            System.arraycopy(buffer.array(), 0, oneBlock, i*4, buffer.array().length);
+//            buffer.clear();
+//        }
+//        return oneBlock;
+    }
+
+    @Override
+    public byte[] decrypt(byte[] oneBlock) {
+        return encryptDecryptInner(oneBlock, false);
+//        ByteBuffer buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
+//
+//        int[] parts = new int[4];
+//
+//        for (int i = 0; i < 4; i++) {
+//            byte[] oneWord = new byte[BLOCK_SIZE / 4];
+//            System.arraycopy(oneBlock, i*4, oneWord, 0, oneWord.length);
+//            buffer.put(oneWord);
+//            buffer.flip();
+//            parts[i] = buffer.getInt();
+//            buffer.clear();
+//        }
+//
+//        int a = parts[0];
+//        int b = parts[1];
+//        int c = parts[2];
+//        int d = parts[3];
+//
+//        int amountRounds = (s.length - 4) / 2;
+//        //pre-whitening reverse
+//        c  =(int) (Integer.toUnsignedLong(c) - Integer.toUnsignedLong(s[2 * amountRounds + 3]));
+//        a = (int) (Integer.toUnsignedLong(a) - Integer.toUnsignedLong(s[2*amountRounds + 2]));
+//
+//
+//
+//        for (int i = amountRounds; i >= 1; i--) {
+//
+//            int tmp = d;
+//            d = c;
+//            c = b;
+//            b = a;
+//            a = tmp;
+//
+//            int t = leftShift( (int) (Integer.toUnsignedLong(b) * (Integer.toUnsignedLong(b) * 2  + 1 )), 5 );
+//            int u = leftShift((int) (Integer.toUnsignedLong(d) * (2 * Integer.toUnsignedLong(d) + 1)),5);
+//
+//            c = (int) ( Integer.toUnsignedLong(rightShift( (int)(Integer.toUnsignedLong(c) - Integer.toUnsignedLong(s[2*i + 1]) ), t) ) ^ Integer.toUnsignedLong(u));
+//            a = (int) ( Integer.toUnsignedLong(rightShift( (int)(Integer.toUnsignedLong(a) - Integer.toUnsignedLong(s[2*i])),u)) ^ Integer.toUnsignedLong(t));
+//        }
+//
+//        //post-whitening
+//        d = (int) ( Integer.toUnsignedLong(d) - Integer.toUnsignedLong(s[1]));
+//        b = (int) (Integer.toUnsignedLong(b) - Integer.toUnsignedLong(s[0]));
+//
+//        parts[0] = a;
+//        parts[1] = b;
+//        parts[2] = c;
+//        parts[3] = d;
+//
+//        for (int i = 0; i < 4; i++) {
+//            buffer.putInt(parts[i]);
+//            System.arraycopy(buffer.array(), 0, oneBlock, i*4, buffer.array().length);
+//            buffer.clear();
+//        }
+//        return oneBlock;
+    }
+
+    private byte[] encryptDecryptInner(byte[] oneBlock, boolean isEncrypt) {
+        ByteBuffer buffer = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
+
         int[] parts = new int[4];
 
         for (int i = 0; i < 4; i++) {
-            byte[] oneWord = new byte[blockSize / 4];
-            System.arraycopy(oneBlock, i, oneWord, 0, oneWord.length);
+            byte[] oneWord = new byte[BLOCK_SIZE / 4];
+            System.arraycopy(oneBlock, i*4, oneWord, 0, oneWord.length);
             buffer.put(oneWord);
             buffer.flip();
             parts[i] = buffer.getInt();
@@ -144,31 +190,56 @@ public class RC6 implements EncryptorDecryptorSymmetric {
         int c = parts[2];
         int d = parts[3];
 
-        int amountRounds = (s.length - 4) / 2;
-        //pre-whitening reverse
-        c  =(int) (Integer.toUnsignedLong(c) - Integer.toUnsignedLong(s[2 * amountRounds + 3]));
-        a = (int) (Integer.toUnsignedLong(a) - Integer.toUnsignedLong(s[2*amountRounds + 2]));
+        if (isEncrypt) {
+            //pre-whitening
+            b =(int) (Integer.toUnsignedLong(b) + Integer.toUnsignedLong(s[0]));
+            d = (int) (Integer.toUnsignedLong(d) + Integer.toUnsignedLong(s[1]));
+
+            int amountRounds = (s.length - 4) / 2;
+
+            for (int i = 1; i <= amountRounds; i++) {
+                int t = leftShift( (int) (Integer.toUnsignedLong(b) * (Integer.toUnsignedLong(b) * 2  + 1 )), 5 );
+                int u = leftShift((int) (Integer.toUnsignedLong(d) * (2 * Integer.toUnsignedLong(d) + 1)),5);
+                a = (int) (Integer.toUnsignedLong( leftShift((int) (Integer.toUnsignedLong(a) ^ Integer.toUnsignedLong(t)), u) ) + Integer.toUnsignedLong(s[2*i]));
+                c = (int) (Integer.toUnsignedLong( leftShift((int) (Integer.toUnsignedLong(c) ^ Integer.toUnsignedLong(u)), t) ) + Integer.toUnsignedLong(s[2*i + 1]));
+
+                int tmp = a;
+                a = b;
+                b = c;
+                c = d;
+                d = tmp;
+            }
+
+            //post-whitening
+            a = (int) ( Integer.toUnsignedLong(a) + Integer.toUnsignedLong(s[2*amountRounds + 2]));
+            c = (int) (Integer.toUnsignedLong(c) + Integer.toUnsignedLong(s[2*amountRounds + 3]));
+        } else {
+            int amountRounds = (s.length - 4) / 2;
+            //pre-whitening reverse
+            c  =(int) (Integer.toUnsignedLong(c) - Integer.toUnsignedLong(s[2 * amountRounds + 3]));
+            a = (int) (Integer.toUnsignedLong(a) - Integer.toUnsignedLong(s[2*amountRounds + 2]));
 
 
 
-        for (int i = amountRounds; i >= 1; i--) {
+            for (int i = amountRounds; i >= 1; i--) {
 
-            int tmp = c;
-            a = d;
-            b = a;
-            c = b;
-            d = tmp;
+                int tmp = d;
+                d = c;
+                c = b;
+                b = a;
+                a = tmp;
 
-            int t = leftShift( (int) (Integer.toUnsignedLong(b) * (Integer.toUnsignedLong(b) * 2  + 1 )), 5 );
-            int u = leftShift((int) (Integer.toUnsignedLong(d) * (2 * Integer.toUnsignedLong(d) + 1)),5);
+                int t = leftShift( (int) (Integer.toUnsignedLong(b) * (Integer.toUnsignedLong(b) * 2  + 1 )), 5 );
+                int u = leftShift((int) (Integer.toUnsignedLong(d) * (2 * Integer.toUnsignedLong(d) + 1)),5);
 
-            c = (int) ( Integer.toUnsignedLong(rightShift( (int)(Integer.toUnsignedLong(c) - Integer.toUnsignedLong(s[2*i + 1]) ), 5) ) ^ Integer.toUnsignedLong(u));
-            a = (int) ( Integer.toUnsignedLong(rightShift( (int)(Integer.toUnsignedLong(a) - Integer.toUnsignedLong(s[2*i])),5)) ^ Integer.toUnsignedLong(t));
+                c = (int) ( Integer.toUnsignedLong(rightShift( (int)(Integer.toUnsignedLong(c) - Integer.toUnsignedLong(s[2*i + 1]) ), t) ) ^ Integer.toUnsignedLong(u));
+                a = (int) ( Integer.toUnsignedLong(rightShift( (int)(Integer.toUnsignedLong(a) - Integer.toUnsignedLong(s[2*i])),u)) ^ Integer.toUnsignedLong(t));
+            }
+
+            //post-whitening
+            d = (int) ( Integer.toUnsignedLong(d) - Integer.toUnsignedLong(s[1]));
+            b = (int) (Integer.toUnsignedLong(b) - Integer.toUnsignedLong(s[0]));
         }
-
-        //post-whitening
-        d = (int) ( Integer.toUnsignedLong(d) - Integer.toUnsignedLong(s[1]));
-        b = (int) (Integer.toUnsignedLong(b) + Integer.toUnsignedLong(s[0]));
 
         parts[0] = a;
         parts[1] = b;
@@ -177,15 +248,17 @@ public class RC6 implements EncryptorDecryptorSymmetric {
 
         for (int i = 0; i < 4; i++) {
             buffer.putInt(parts[i]);
-            System.arraycopy(buffer.array(), 0, oneBlock, i, buffer.array().length);
+            System.arraycopy(buffer.array(), 0, oneBlock, i*4, buffer.array().length);
             buffer.clear();
         }
         return oneBlock;
+
+
     }
 
     @Override
     public int getBlockSize() {
-        return blockSize;
+        return BLOCK_SIZE;
     }
 
 
