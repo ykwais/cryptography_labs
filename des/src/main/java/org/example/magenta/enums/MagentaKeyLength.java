@@ -1,17 +1,16 @@
-package org.example.rc6.enums;
+package org.example.magenta.enums;
 
-public enum RC6KeyLength {
+public enum MagentaKeyLength {
     KEY_128(16),
     KEY_192(24),
     KEY_256(32);
 
     private final int keyLengthInBytes;
 
-    RC6KeyLength(int keyLengthInBytes) {
+    MagentaKeyLength(int keyLengthInBytes) {
         this.keyLengthInBytes = keyLengthInBytes;
     }
     public int getKeyLengthInBytes() {
         return keyLengthInBytes;
     }
-
 }

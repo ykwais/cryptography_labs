@@ -117,7 +117,7 @@ class DefaultMathOperationTests {
     @Test
     void testAffineTransformationExample() {
         byte input = 0x00;
-        byte expected = 0x63; // по стандарту AES
+        byte expected = 0x63;
 
         byte actual = (byte) (multMatrixOnVector(input) ^ (byte) 0x63);
 
