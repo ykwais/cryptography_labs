@@ -8,6 +8,10 @@ import org.example.constants.TypeAlgorithm;
 import org.example.context.Context;
 import org.example.deal.Deal;
 import org.example.interfaces.EncryptorDecryptorSymmetric;
+import org.example.magenta.Magenta;
+import org.example.magenta.enums.MagentaKeyLength;
+import org.example.rc6.RC6;
+import org.example.rc6.enums.RC6KeyLength;
 import org.example.rijnadael.Rijndael;
 import org.example.rijnadael.enums.RijndaelBlockLength;
 import org.example.rijnadael.enums.RijndaelKeyLength;
@@ -28,10 +32,10 @@ public class test {
     public static void main(String[] args) {
 
         String[] testFiles = {
-               // "test.txt",
+                //"test.txt",
                 //"пз_3_менеджмент.pdf",
-                "Архиватор на Go _ Урок #7_ Алгоритм Шеннона-Фано - теория.mp4",
-                //"test.jpg"
+                "pirs_2.mp4",
+                //"in.png"
         };
 
         for (String filename : testFiles) {
@@ -48,7 +52,9 @@ public class test {
                 //testAlgorithm(TypeAlgorithm.DES, DES_KEY, null, inputFile);
 
                 //EncryptorDecryptorSymmetric algo = new Deal(BitsInKeysOfDeal.BIT_128, DES_KEY, DEAL_KEY);
-                EncryptorDecryptorSymmetric algo = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, DEAL_KEY, (byte) 0x1B);
+                //EncryptorDecryptorSymmetric algo = new Rijndael(RijndaelKeyLength.KEY_128, RijndaelBlockLength.BLOCK_128, DEAL_KEY, (byte) 0x1B);
+                EncryptorDecryptorSymmetric algo = new Magenta(MagentaKeyLength.KEY_128, DEAL_KEY);
+                //EncryptorDecryptorSymmetric algo = new RC6(RC6KeyLength.KEY_128, DEAL_KEY);
                 testAlgorithm(algo, inputFile);
 
             } catch (Exception e) {
@@ -63,7 +69,7 @@ public class test {
         Context context = new Context(algo, CipherMode.RD, PaddingMode.ANSI_X923, IV_deal, DELTA);
 
 
-        Path encryptedFile = Paths.get("src/main/resources", "_encrypted.bin");
+        Path encryptedFile = Paths.get("src/main/resources", "_encrypted.mp4");
         Path decryptedFile = Paths.get("src/main/resources", "_decrypted.mp4");
 
         context.encrypt(inputFile, encryptedFile);

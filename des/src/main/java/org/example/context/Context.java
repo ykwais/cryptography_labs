@@ -23,7 +23,7 @@ public class Context {
     private final CipherMode cipherMode;
     private final PaddingMode paddingMode;
     private final EncryptorDecryptorSymmetric encryptorDecryptorSymmetric;
-    private static final int BUFFER_SIZE = 9600 * 100;
+    private static final int BUFFER_SIZE = 9600 * 10;
     private byte[] initialVector;
     private Integer deltaForRD = null;
     private final int blockSize;

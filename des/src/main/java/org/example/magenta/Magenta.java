@@ -11,8 +11,7 @@ public class Magenta implements EncryptorDecryptorSymmetric {
     private byte[] key = null;
     private final KeyExpansion keyExpansion;
     private byte[][] roundKeys = null;
-    private byte[] sBlock = null;
-    private final GeneratorSBlock generatorSBlock = new GeneratorSBlock((byte) 0x65);
+    private final byte[] sBlock;
 
     public Magenta(MagentaKeyLength keyLength, byte[] key) {
         keyExpansion = new MagentaKeyExpansion();
@@ -20,6 +19,7 @@ public class Magenta implements EncryptorDecryptorSymmetric {
             throw new IllegalArgumentException("Key is not a valid RC6 key");
         }
         setKey(key);
+        GeneratorSBlock generatorSBlock = new GeneratorSBlock((byte) 0x65);
         sBlock = generatorSBlock.getSBlock();
     }
 
@@ -37,18 +37,41 @@ public class Magenta implements EncryptorDecryptorSymmetric {
     }
 
     @Override
-    public byte[] encrypt(byte[] message) {
-        return new byte[0];
+    public byte[] encrypt(byte[] oneBlock) {
+        if (roundKeys == null) {
+            throw new IllegalArgumentException("Round keys not set");
+        }
+        int[] keyPattern = switch (roundKeys.length) {
+            case 2 -> new int[]{0, 0, 1, 1, 0, 0};
+            case 3 -> new int[]{0, 1, 2, 2, 1, 0};
+            case 4 -> new int[]{0, 1, 2, 3, 3, 2, 1, 0};
+            default -> throw new IllegalArgumentException("Unsupported key length");
+        };
+        byte[] result = oneBlock.clone();
+        for (int j : keyPattern) {
+            result = roundFunction(result, roundKeys[j]);
+        }
+        return result;
     }
 
+
+
     @Override
-    public byte[] decrypt(byte[] cipherText) {
-        return new byte[0];
+    public byte[] decrypt(byte[] oneBlock) {
+        return v(encrypt(v(oneBlock)));
     }
 
     @Override
     public int getBlockSize() {
         return BLOCK_SIZE;
+    }
+
+    private byte[] v(byte[] oneBlock) {
+        byte[][] splitted = splitArray(oneBlock);
+        byte[] result = new byte[oneBlock.length];
+        System.arraycopy(splitted[1], 0, result, 0, splitted[1].length);
+        System.arraycopy(splitted[0], 0, result, splitted[1].length, splitted[0].length);
+        return result;
     }
 
 
@@ -76,10 +99,11 @@ public class Magenta implements EncryptorDecryptorSymmetric {
         }
     }
 
-    private void t(byte[] oneBlock) {
+    private byte[] t(byte[] oneBlock) {
         for (int i = 0; i < 4; i++){
             pi(oneBlock);
         }
+        return oneBlock;
     }
 
     private byte[] evenByteArray(byte[] oneBlock) {
@@ -96,6 +120,60 @@ public class Magenta implements EncryptorDecryptorSymmetric {
             odd[j] = oneBlock[i];
         }
         return odd;
+    }
+
+    private byte[] roundFunction(byte[] oneBlock, byte[] roundKey) {
+        byte[][] splitted = splitArray(oneBlock);
+        return concateArrays(splitted[1], xorByteArrays(splitted[0], e( concateArrays(splitted[1], roundKey))));
+    }
+
+    private byte[] e(byte[] oneBlock) {
+        return evenByteArray(c(oneBlock, 3));
+    }
+
+    private byte[] c(byte[] oneBlock, int j) {
+        if (j == 1) {
+            return t(oneBlock);
+        }
+        byte[] left = new byte[oneBlock.length / 2];
+        byte[] right = new byte[oneBlock.length / 2];
+        System.arraycopy(oneBlock, 0, left, 0, left.length);
+        System.arraycopy(oneBlock, left.length, right, 0, right.length);
+        return t( concateArrays( xorByteArrays(left, evenByteArray(c(oneBlock, j - 1)) ),
+                xorByteArrays(right, oddByteArray(c(oneBlock, j - 1))  ) ) );
+
+    }
+
+    private byte[] concateArrays(byte[] first, byte[] second) {
+        byte[] result = new byte[first.length + second.length];
+        System.arraycopy(first, 0, result, 0, first.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    private byte[][] splitArray(byte[] array) {
+        if (array.length % 2 != 0) {
+            throw new IllegalArgumentException("Array length should be even");
+        }
+        byte[][] result = new byte[2][];
+        byte[] left = new byte[array.length / 2];
+        byte[] right = new byte[array.length / 2];
+        System.arraycopy(array, 0, left, 0, left.length);
+        System.arraycopy(array, left.length, right, 0, right.length);
+        result[0] = left;
+        result[1] = right;
+        return result;
+    }
+
+    private byte[] xorByteArrays(byte[] a, byte[] b) {
+        if (a.length != b.length) {
+            throw new IllegalArgumentException("Arrays have different lengths");
+        }
+        byte[] result = new byte[a.length];
+        for (int i = 0; i < a.length; ++i) {
+            result[i] = (byte) (a[i] ^ b[i]);
+        }
+        return result;
     }
 
 
