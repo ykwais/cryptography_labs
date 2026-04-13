@@ -45,6 +45,11 @@ class DefaultMathOperationTests {
     }
 
     @Test
+    void testMultiplyPolynoms3() {
+        assertEquals((byte) 0x13, GaloisOperations.multiplyPolymomsByMod((byte) 0xFF, (byte) 0xFF, (byte) 0x1B));
+    }
+
+    @Test
     void testDegree() {
         assertEquals(7, GaloisOperations.degree((short) 0x80));
     }
@@ -91,7 +96,7 @@ class DefaultMathOperationTests {
 
     @Test
     void checkOpposite() {
-        byte start = (byte) 0x02;
+        byte start = (byte) 0xc5;
         byte oppo = getInversePolynom(start, (byte) 0x1B);
         System.out.println(oppo);
         assertEquals((byte) 0x01, multiplyPolymomsByMod(start, oppo, (byte) 0x1B));
